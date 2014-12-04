@@ -1,12 +1,9 @@
 package homate.main;
-
+import homate.config.R;
 import homate.server.HTTPIntentService;
 import homate.server.ServerActions;
-import jukeme.survey.R;
-
 import org.json.JSONException;
 import org.json.JSONObject;
-
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
@@ -24,10 +21,9 @@ import android.view.Window;
 import android.widget.EditText;
 import android.widget.Toast;
 
-
-
-public class MainActivity extends Activity {
-	public static final String PREFS_FILE	="UserPref.dat";
+public class MainActivity extends Activity 
+{
+	public static final String PREFS_FILE	="UserPrefHomate.dat";
 	public static final String PREFS_STATS	="login_status";
 	public static final String SERVER_LOGIN ="jukeMe.survey.ServerActions.br.login";
 	final protected String TAG = this.getClass().getName();
@@ -37,24 +33,25 @@ public class MainActivity extends Activity {
 	public static final String PREFS_PWD	="password";
 	private BroadcastReceiver receiver;
 	private IntentFilter filter;
-	
 	private ServerActions myactions;
 	public static boolean exit=false;
+	private String userName;
+	private String passWord;
+	
 	@Override
-	protected void onCreate(Bundle savedInstanceState) {
+	protected void onCreate(Bundle savedInstanceState) 
+	{
 		super.onCreate(savedInstanceState);
 		this.requestWindowFeature(Window.FEATURE_NO_TITLE);
 		setContentView(R.layout.activity_main);
 
-
 		Log.d("Main","onCreate() called");
 		myactions = new ServerActions(this, SERVER_LOGIN);
-
 		
 		// check saved SharedPref for login status
 		SharedPreferences settings = getSharedPreferences(PREFS_FILE, 0);
-		//boolean login_stats = settings.getBoolean(PREFS_STATS, false);
-		/*if (login_stats) {
+		boolean login_stats = settings.getBoolean(PREFS_STATS, false);
+		if (false) {
 			try {
 				// Skip login 
 				Log.d("LoginActivity","Skip Login");
@@ -64,11 +61,8 @@ public class MainActivity extends Activity {
 			} catch (RuntimeException e) {
 				Log.e("LoginActivity","Failed Call Menu: "+e);
 			}
-		} */
+		} 
 
-		/////////////////////////////////////////////////
-		/////////////////////////////////////////////////
-		
 		// setup receiver - should check if there are some updates in server data base
 		receiver = new BroadcastReceiver() {
 			@Override
@@ -137,8 +131,6 @@ public class MainActivity extends Activity {
 		if(exit){
 			finish();
 		}
-
-
 	}
 	@Override
 	public void onPause() {
@@ -149,37 +141,39 @@ public class MainActivity extends Activity {
 		
 	}
 	@Override
-	public boolean onCreateOptionsMenu(Menu menu) {
+	public boolean onCreateOptionsMenu(Menu menu) 
+	{
 		// Inflate the menu; this adds items to the action bar if it is present.
 		getMenuInflater().inflate(R.menu.activity_main, menu);
 		return true;
 	}
 
-	public void onLogin(View view){
-
-
+	public void onLogin(View view)
+	{
 		pd = ProgressDialog.show(this, "Loading..", "Please wait",true,true);
-
 		// save sharedPrefs, status is false until confirmation
 		SharedPreferences settings = getSharedPreferences(PREFS_FILE, 0);
 		SharedPreferences.Editor editor = settings.edit();
 		editor.putBoolean(PREFS_STATS, false);
-		editor.putString(PREFS_USER, "jukeMe");
-		editor.putString(PREFS_PWD, "password");
+		userName = (((EditText)findViewById(R.id.userName)).getText().toString());
+		passWord = (((EditText)findViewById(R.id.password)).getText().toString());
+		
+		editor.putString(PREFS_USER, userName);
+		editor.putString(PREFS_PWD, passWord);
 		editor.commit();
-		myactions.new_user_register("jukeMe","password");
+		myactions.new_user_registery(userName, passWord);
 		
 	}
-	public void onExit(View view){
-
+	
+	public void onExit(View view)
+	{
 		finish();
 	}
 
 	@Override
-	public void onBackPressed() {
-
+	public void onBackPressed() 
+	{
 		final AlertDialog.Builder editalert = new AlertDialog.Builder(this);
-
 		editalert.setTitle("Exit");
 		editalert.setIcon(android.R.drawable.ic_dialog_alert);
 		editalert.setCancelable(true);
@@ -187,10 +181,10 @@ public class MainActivity extends Activity {
 		input.setHint("Do you really wish to exit? ");
 		editalert.setView(input);
 		editalert.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-			public void onClick(DialogInterface dialog, int whichButton) {
+			public void onClick(DialogInterface dialog, int whichButton) 
+			{
 				System.out.println("backpressed");
 				finish();
-
 			}
 		});
 		editalert.setNegativeButton("No", new DialogInterface.OnClickListener() {
@@ -200,9 +194,5 @@ public class MainActivity extends Activity {
 		editalert.create();
 
 		editalert.show();
-
-
 	}
-
-
 }

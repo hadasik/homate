@@ -2,7 +2,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/background"
+    android:background="@drawable/mainentry"
     tools:context=".MainActivity" >
 
     <ImageView
@@ -11,17 +11,37 @@
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"
-        android:layout_marginBottom="95dp"
-        android:background="@drawable/login" 
-        android:onClick="onLogin"/>
+        android:layout_marginBottom="50dp"
+        android:background="@drawable/login"
+        android:onClick="onLogin" />
 
-    <ImageView
-        android:id="@+id/imageView2"
+    <EditText
+        android:id="@+id/userName"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentTop="true"
-        android:background="@drawable/exit"
-        android:onClick="onExit" />
+        android:layout_above="@+id/password"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="30dp"
+        android:ems="10"
+        android:gravity="center"
+        android:hint="User Name" 
+        android:textColor="#FFFFFF"
+        android:textColorHint="#FFFFFF"/>
+
+    <EditText
+        android:id="@+id/password"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/imageView1"
+        android:layout_alignLeft="@+id/userName"
+        android:layout_marginBottom="34dp"
+        android:ems="10"
+        android:gravity="center"
+        android:hint="Password"
+        android:textColor="#FFFFFF"
+        android:textColorHint="#FFFFFF" >
+
+        <requestFocus />
+    </EditText>
 
 </RelativeLayout>

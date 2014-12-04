@@ -1,25 +1,17 @@
 package homate.main;
-
-import jukeme.survey.R;
+import homate.config.R;
 import android.app.Activity;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.View;
 import android.view.Window;
-/*hadas*/
-public class Loged extends Activity {
 
+public class Loged extends Activity {
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		this.requestWindowFeature(Window.FEATURE_NO_TITLE);
-		setContentView(R.layout.activity_loged);
-		
-		
-		
-		
-		
-		
+		setContentView(R.layout.activity_loged);	
 	}
 
 	@Override
@@ -38,7 +30,4 @@ public class Loged extends Activity {
 		//Intent intent = new Intent(this, Loged.class);
 		//startActivity(intent);
 	}
-	
-	
-
 }
