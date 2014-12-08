@@ -72,11 +72,12 @@ public class HTTPIntentService extends IntentService
 
     			//start listening to the stream
     			Scanner inStream = new Scanner(client.getInputStream());
-
+    			
     			//process the stream
     			while(inStream.hasNextLine())
     				response+=(inStream.nextLine());
     			
+    			System.out.println("response recieved:"+response);
     			// disconnect client
     			client.disconnect();
 

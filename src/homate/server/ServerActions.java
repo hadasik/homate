@@ -49,7 +49,7 @@ public class ServerActions
 			info.put(ACTION_COMMAND, ACTION_NEW_USER_REGISTER);
 			info.put("username", username);
 			info.put("password", password);
-			info.put("isAdmin", false);
+			info.put("isAdmin", 0);
 			System.out.println("try to send to server!!");
 		}
 		catch (JSONException e) 

@@ -29,25 +29,28 @@ class MainPage(webapp2.RequestHandler):
 		self.response.out.write("<html><body>")
 		self.response.out.write("<H1>'welcome to homate testing server'</H1>")
 		dba=dataBaseClass()
-		msg = dba.new_user_registry('lili', '1111', False)
+		msg = dba.new_user_registry('lili', '1111')
 		self.response.out.write("<p>" + msg[1] + "</p>")
 		msg = dba.add_to_group('lady gaga', 'shakira')
 		self.response.out.write("<p>" + msg[1] + "</p>")
 
 	def post(self):
 		dba=dataBaseClass()
-		#user_request = ast.literal_eval(self.request.body)
-		act = self.request.get('action')
-		login = self.request.get('username')
-		password = self.request.get('password')
-		if user_request['action'] == 'new_user_registry':
-			res,msg = dba.new_user_registry(login,password,False) 
-			result = {'action' : act,'return value' : res,'msg' : msg}
+		m = eval(self.request.body)
+		n = json.dumps(m)
+		o = json.loads(n)
+		action = o['action']
+		passWord = o['password']
+		userName = o['username']
+
+		if 'new_user_registry' in action:
+			msg = dba.new_user_registry(userName,passWord)
+			result = {'action' : action,'return value' : msg[0],'msg' : msg[1]}
 			self.response.headers['Content-Type'] = 'application/JSON'
 			self.response.out.write(json.dumps(result))
 
 class dataBaseClass:
-	def new_user_registry(self,username,password,isAdmin):
+	def new_user_registry(self,username,password):
 		try:
 			match = db.GqlQuery("SELECT * "
 				"FROM UsersDB "
@@ -55,7 +58,7 @@ class dataBaseClass:
 				x=username)
 			user=match.get()
 			if user == None:
-				UsersDB(user_name = username,user_password = password,is_admin = isAdmin).put()
+				UsersDB(user_name = username,user_password = password,is_admin = False).put()
 				return 1,username+' was added successfully',''
 			elif user.user_password == password:
 				return 1,username+' Welcome Back!',''

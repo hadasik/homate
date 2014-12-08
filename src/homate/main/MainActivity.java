@@ -51,7 +51,7 @@ public class MainActivity extends Activity
 		// check saved SharedPref for login status
 		SharedPreferences settings = getSharedPreferences(PREFS_FILE, 0);
 		boolean login_stats = settings.getBoolean(PREFS_STATS, false);
-		if (false) {
+		if (login_stats) {
 			try {
 				// Skip login 
 				Log.d("LoginActivity","Skip Login");
