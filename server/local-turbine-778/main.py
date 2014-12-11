@@ -8,10 +8,13 @@ class UsersDB(db.Model):
 	user_name = db.StringProperty(required=True)
 	user_password = db.StringProperty(required=True)
 	is_admin = db.BooleanProperty()
-	user_groupID = db.StringProperty()
+	user_groupID = db.IntegerProperty(default = 0)
 
 class GroupsDB(db.Model):
+	#groupID = db.StringProperty(required=True,auto_now_add=True)
+	groupID = db.IntegerProperty (indexed = True,default = 1)
 	group_name = db.StringProperty(required=True)
+	group_admin = db.StringProperty(required=True)
 
 class PaymentsDB(db.Model):
 	group_id = db.StringProperty(required=True)
@@ -29,9 +32,9 @@ class MainPage(webapp2.RequestHandler):
 		self.response.out.write("<html><body>")
 		self.response.out.write("<H1>'welcome to homate testing server'</H1>")
 		dba=dataBaseClass()
-		msg = dba.new_user_registry('lili', '1111')
+		msg = dba.new_user_registry('counter', '1111')
 		self.response.out.write("<p>" + msg[1] + "</p>")
-		msg = dba.add_to_group('lady gaga', 'shakira')
+		msg = dba.create_new_group('counter')
 		self.response.out.write("<p>" + msg[1] + "</p>")
 
 	def post(self):
@@ -40,14 +43,21 @@ class MainPage(webapp2.RequestHandler):
 		n = json.dumps(m)
 		o = json.loads(n)
 		action = o['action']
-		passWord = o['password']
 		userName = o['username']
 
 		if 'new_user_registry' in action:
+			passWord = o['password']
 			msg = dba.new_user_registry(userName,passWord)
-			result = {'action' : action,'return value' : msg[0],'msg' : msg[1]}
-			self.response.headers['Content-Type'] = 'application/JSON'
-			self.response.out.write(json.dumps(result))
+			result = {'action' : action,'return value' : msg[0],'msg' : msg[1], 'data':msg[2]}
+		elif 'get_group' in action:
+			msg = dba.get_group(userName)
+			result = {'action' : action,'return value' : msg}
+		elif 'create_new_group' in action:
+			msg = dba.create_new_group(userName)
+			result = {'action' : action,'return value' : msg[0], 'msg':msg[1], 'data':msg[2]}
+
+		self.response.headers['Content-Type'] = 'application/JSON'
+		self.response.out.write(json.dumps(result))
 
 class dataBaseClass:
 	def new_user_registry(self,username,password):
@@ -58,35 +68,47 @@ class dataBaseClass:
 				x=username)
 			user=match.get()
 			if user == None:
-				UsersDB(user_name = username,user_password = password,is_admin = False).put()
-				return 1,username+' was added successfully',''
+				UsersDB(user_name = username,user_password = password,
+					is_admin = False).put()
+
+				return 1,username+' was added successfully', 0
 			elif user.user_password == password:
-				return 1,username+' Welcome Back!',''
+				return 1,username+' Welcome Back!', user.user_groupID
 			else:
 				return 0,'Wrong Password',''
 		except datastore_errors,e:
 			return 0,'adding failed : '+e,''
 
-	def create_new_group(self, adminName, groupName):
+	def get_group(self, username):
+			match = db.GqlQuery("SELECT * " "FROM UsersDB " "WHERE user_name =:x ", x=username)
+			user=match.get()
+			return user.user_groupID
+
+	def create_new_group(self, adminName):
 		try:
-			match = db.GqlQuery("SELECT * " "FROM GroupsDB " "WHERE group_name =:x ",x=groupName)
-			group = match.get()
-			if group == None:
-				GroupsDB(group_name = groupName).put()
+			match1 = db.GqlQuery("SELECT * " "FROM GroupsDB " "WHERE user_name =:x ",x=adminName)
+			admin1 = match1.get()
+			if admin1==None:
+
 				try:
 					match = db.GqlQuery("SELECT * " "FROM UsersDB " "WHERE user_name =:x ",x=adminName)
 					admin = match.get()
-					if admin.user_groupID == None:
-						admin.user_groupID = groupName
+					if admin.user_groupID == 0:
+						GroupsDB(group_name = "house of fun",group_admin = adminName).put()
+						match2 = db.GqlQuery("SELECT * " "FROM GroupsDB " "WHERE group_admin =:x ",x=adminName)
+						admin_group = match2.get()
+						admin.user_groupID = admin_group.groupID
+						admin.is_admin = True
 						admin.put()
-						return 1,groupName+" roomate group was created successfully",''
+						return 1, 'new group crated successfully', 5
+					else: return 0,'adding failed : '+e,0
+
 				except datastore_errors,e:
-					return 0,'adding failed : '+e,''
-				
+					return 0,'adding failed : '+e,0
 			else:
-				return 0, "sorry, this group name is taken",''
+				return 0,'one group allowed : '+e,admin1.groupID
 		except datastore_errors,e:
-			return 0,'adding failed : '+e,''
+			return 0,'adding failed : '+e,0
 
 	def add_to_group(self, admin_username, new_member):
 		try:
@@ -110,3 +132,17 @@ class dataBaseClass:
 			return 0,'adding failed : '+e,''
 
 app = webapp2.WSGIApplication([('/', MainPage)],debug=True)
+
+
+
+'''	def set_group(self, adminName, groupName):
+		return 1
+		
+
+				return 1,groupName+" roomate group was created successfully",''
+			else:
+				return 0,adminName+" already created a group",''
+
+		except datastore_errors,e:
+			return 0,'adding failed : '+e,''
+'''
