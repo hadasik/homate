@@ -80,6 +80,7 @@ public class HTTPIntentService extends IntentService
     			System.out.println("response recieved:"+response);
     			// disconnect client
     			client.disconnect();
+    			inStream.close();
 
     		} catch(MalformedURLException e){
     			Log.e("HTTP","MalformedURLException: " + e.toString());

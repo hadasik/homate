@@ -1,5 +1,6 @@
 package homate.main;
 import homate.config.HomateMenu;
+import homate.config.Homenu;
 import homate.config.R;
 import homate.server.HTTPIntentService;
 import homate.server.ServerActions;
@@ -83,7 +84,12 @@ public class MainActivity extends Activity
 								try {
 									Log.d("MainActivity","Call Menu");
 									// unregister receiver
-									Intent launcher = new Intent(context, Loged.class);
+									Intent launcher;
+									if(!(obj.getString(ServerActions.SERVER_DATA).equals("0"))){
+										launcher = new Intent(context, Homenu.class);
+									}else{
+										launcher = new Intent(context, Loged.class);
+									}
 									launcher.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);//remove login screen from stack
 									launcher.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);// Stay single instance
 									startActivity(launcher);
@@ -127,7 +133,7 @@ public class MainActivity extends Activity
 						if(group.equals("0")){
 							launcher = new Intent(this, Loged.class);
 						}else{
-							launcher = new Intent(this, Loged.class);
+							launcher = new Intent(this, Homenu.class);
 						}
 						startActivity(launcher);
 						

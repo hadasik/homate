@@ -4,6 +4,7 @@ import org.json.JSONObject;
 
 import homate.config.GroupPrefs;
 import homate.config.HomateMenu;
+import homate.config.Homenu;
 import homate.config.R;
 import homate.server.HTTPIntentService;
 import homate.server.ServerActions;
@@ -76,7 +77,7 @@ myactions = new ServerActions(this, SERVER_GRP);
 									try {
 										Log.d("MainActivity","Call Menu");
 										// unregister receiver
-										Intent launcher = new Intent(context, HomateMenu.class);
+										Intent launcher = new Intent(context, Homenu.class);
 										launcher.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);//remove login screen from stack
 										launcher.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);// Stay single instance
 										startActivity(launcher);
