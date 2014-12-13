@@ -12,7 +12,7 @@ class UsersDB(db.Model):
 
 class GroupsDB(db.Model):
 	#groupID = db.StringProperty(required=True,auto_now_add=True)
-	groupID = db.IntegerProperty (indexed = True,default = 1)
+	groupID = db.IntegerProperty (indexed = True,default = 0)
 	group_name = db.StringProperty(required=True)
 	group_admin = db.StringProperty(required=True)
 
@@ -27,15 +27,16 @@ class ShopListDB(db.Model):
 	group_id = db.StringProperty(required=True)
 	product = db.StringProperty()
 
+match = db.GqlQuery("SELECT * " "FROM UsersDB " "WHERE user_name =:x ", x='counter')
+user=match.get()
+if user ==None:
+	UsersDB(user_name = 'counter',user_password = '1111',is_admin = True,user_groupID = -1).put()
+	GroupsDB(group_admin = 'counter',group_name = 'house of counters',groupID = 1).put()
+
 class MainPage(webapp2.RequestHandler):
 	def get(self):
 		self.response.out.write("<html><body>")
 		self.response.out.write("<H1>'welcome to homate testing server'</H1>")
-		dba=dataBaseClass()
-		msg = dba.new_user_registry('counter', '1111')
-		self.response.out.write("<p>" + msg[1] + "</p>")
-		msg = dba.create_new_group('counter')
-		self.response.out.write("<p>" + msg[1] + "</p>")
 
 	def post(self):
 		dba=dataBaseClass()
@@ -85,6 +86,9 @@ class dataBaseClass:
 			return user.user_groupID
 
 	def create_new_group(self, adminName):
+		match3 = db.GqlQuery("SELECT * " "FROM GroupsDB " "WHERE group_admin =:x ",x='counter')
+		counter = match3.get()
+		count = counter.groupID
 		try:
 			match1 = db.GqlQuery("SELECT * " "FROM GroupsDB " "WHERE user_name =:x ",x=adminName)
 			admin1 = match1.get()
@@ -94,19 +98,20 @@ class dataBaseClass:
 					match = db.GqlQuery("SELECT * " "FROM UsersDB " "WHERE user_name =:x ",x=adminName)
 					admin = match.get()
 					if admin.user_groupID == 0:
-						GroupsDB(group_name = "house of fun",group_admin = adminName).put()
-						match2 = db.GqlQuery("SELECT * " "FROM GroupsDB " "WHERE group_admin =:x ",x=adminName)
-						admin_group = match2.get()
-						admin.user_groupID = admin_group.groupID
+						GroupsDB(group_name = "house of fun",
+							group_admin = adminName,groupID = count).put()
+						counter.groupID = count + 1
+						counter.put()
+						admin.user_groupID = count
 						admin.is_admin = True
 						admin.put()
-						return 1, 'new group crated successfully', 5
-					else: return 0,'adding failed : '+e,0
+						return 1, 'new group crated successfully', admin.user_groupID
+					else: return 0,'adding failed : ',0
 
 				except datastore_errors,e:
 					return 0,'adding failed : '+e,0
 			else:
-				return 0,'one group allowed : '+e,admin1.groupID
+				return 0,'one group allowed : ',admin1.groupID
 		except datastore_errors,e:
 			return 0,'adding failed : '+e,0
 
