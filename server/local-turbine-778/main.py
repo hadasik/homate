@@ -62,12 +62,148 @@ class MainPage(webapp2.RequestHandler):
 			groupName = o['groupName']
 			msg = dba.edit_group_name(group_id, groupName)
 			result = {'action' : action,'return value' : msg}
+		elif 'add_member' in action:
+			userName = o['username']
+			memberName = o['memberName']
+			msg = dba.add_new_member(userName,memberName)
+			result = {'action' : action,'return value' : msg[0], 'msg':msg[1]}
+
+		elif 'remove_member' in action:
+			userName = o['username']
+			memberName = o['memberName']
+			msg = dba.remove_member(userName,memberName )
+			result = {'action' : action,'return value' : msg[0], 'msg':msg[1]}
+
+		elif 'leave_group' in action:
+			userName = o['username']
+			msg = dba.leave_group(userName)
+			result = {'action' : action,'return value' : msg[0], 'msg':msg[1]}
+
+		elif 'get_members' in action:
+			groupID = o['groupID']
+			msg = dba.get_members(groupID)
+			result = {'action' : action,'return value' : msg[0], 'msg':msg[1]}
+
+		elif 'set_admin' in action:
+			username = o['username']
+			newAdmin = o['newAdmin']
+			msg = dba.set_admin(username,newAdmin )
+			result = {'action' : action,'return value' : msg[0], 'msg':msg[1]}
 
 
 		self.response.headers['Content-Type'] = 'application/JSON'
 		self.response.out.write(json.dumps(result))
 
 class dataBaseClass:
+
+	def add_new_member(self,userName,memberName):
+		try:
+			match1 = db.GqlQuery("SELECT * " "FROM UsersDB " "WHERE user_name =:x ",x=userName)
+			user=match1.get()
+			if user.is_admin == False:
+				return 0, "you are not permitted to add new members"
+			else:
+				match2 = db.GqlQuery("SELECT * " "FROM UsersDB " "WHERE user_name =:x ",x=memberName)
+				member=match2.get()
+				if member == None:
+					return 0, "no such user"
+				elif member.user_groupID == 0:
+					member.user_groupID = user.user_groupID
+					member.put()
+					return 1,"member was added successfuly"
+				else:
+					return 0,"user is already member in a group"
+		except datastore_errors,e:
+			return 0,'adding failed : '+e,''
+
+	def remove_member(self,userName,memberName):
+		if userName == memberName:
+			return self.leave_group(userName)
+		else:
+			try:
+				match1 = db.GqlQuery("SELECT * " "FROM UsersDB " "WHERE user_name =:x ",x=userName)
+				user=match1.get()
+				if user.is_admin == False:
+					return 0, "you are not permitted to remove members"
+				else:
+					match2 = db.GqlQuery("SELECT * " "FROM UsersDB " "WHERE user_name =:x ",x=memberName)
+					member=match2.get()
+					if member == None:
+						return 0, "no such user"
+					elif member.user_groupID == user.user_groupID:
+						member.user_groupID = 0
+						member.put()
+						return 2,"member removed"
+					else:
+						return 0,"user is not a member anymore"
+			except datastore_errors,e:
+				return 0,'removing failed : '+e,''
+
+	def leave_group(self,userName):
+		try:
+			match1 = db.GqlQuery("SELECT * " "FROM UsersDB " "WHERE user_name =:x ",x=userName)
+			user1=match1.get()
+			if user1.is_admin == False:
+				user1.user_groupID = 0
+				user1.put()
+				return 1, "left group successfuly"
+
+			else:
+				match2 = db.GqlQuery("SELECT * " "FROM UsersDB " "WHERE user_groupID =:x ",
+										x=user1.user_groupID)
+				user2=match2.fetch(100)
+				if len(user2) == 1:
+					user1.user_groupID = 0
+					user1.is_admin = False
+					user1.put()
+
+					match2 = db.GqlQuery("SELECT * " "FROM GroupsDB " "WHERE group_admin =:x ",
+											x=userName)
+					match2.get().delete()
+
+					return 1, "left group successfuly"
+				else:
+					return 0, "you must pass your admin permissions first"
+		except datastore_errors,e:
+			return 0,'leaving failed : '+e,''
+
+	def get_members(self,groupID):
+		try:
+			match = db.GqlQuery("SELECT * " "FROM UsersDB " "WHERE user_groupID =:x ",x=int(groupID))
+			users=match.fetch(100)
+			membersList = ""
+			for i in range (0,len(users)):
+				membersList+=users[i].user_name
+				membersList+='#'
+			return 1, membersList
+		except datastore_errors,e:
+			return 0,'getting member list failed : '+e,''
+
+
+	def set_admin(self,username,newAdmin):
+		try:
+			match1 = db.GqlQuery("SELECT * " "FROM UsersDB " "WHERE user_name =:x ",x=username)
+			user1=match1.get()
+			if user1.is_admin == False:
+				return 0, "you are not permitted to set admin"
+			else:
+				match2 = db.GqlQuery("SELECT * " "FROM UsersDB " "WHERE user_name =:x ",x=newAdmin)
+				user2=match2.get()
+				if user2.user_groupID == user1.user_groupID:
+					match3 = db.GqlQuery("SELECT * " "FROM GroupsDB " "WHERE group_admin =:x ",x=username)
+					user3 = match3.get()
+					user3.adminName = newAdmin
+					user3.put()
+					user2.is_admin = True
+					user1.is_admin = False
+					user1.put()
+					user2.put()
+					return 1, "admin was changed successfuly"
+		except datastore_errors,e:
+			return 0,'getting member list failed : '+e,''
+
+
+
 	def new_user_registry(self,username,password):
 		try:
 			match = db.GqlQuery("SELECT * "
@@ -76,15 +212,20 @@ class dataBaseClass:
 				x=username)
 			user=match.get()
 			if user == None:
-				UsersDB(user_name = username,user_password = password,
+				if '#' in username:
+					return 0, '# is not allowed', 0, "House Of Fun"
+				else:
+					UsersDB(user_name = username,user_password = password,
 					is_admin = False).put()
-
-				return 1,username+' was added successfully', 0, "House Of Fun"
+					return 1,username+' was added successfully', 0, "House Of Fun"
+			
 			elif user.user_password == password:
-
 				match2 = db.GqlQuery("SELECT * " "FROM GroupsDB " "WHERE groupID =:x ", x=user.user_groupID)
 				group=match2.get()
-				return 1,username+' Welcome Back!', user.user_groupID, group.group_name
+				if group == None:
+					return 1,username+' Welcome Back!', user.user_groupID, "House Of Fun"
+				else:
+					return 1,username+' Welcome Back!', user.user_groupID, group.group_name
 			else:
 				return 0,'Wrong Password','',"House Of Fun"
 		except datastore_errors,e:
@@ -148,7 +289,8 @@ class dataBaseClass:
 			admin = match_admin.get()
 			if admin!=None:
 				try:
-					match_member = db.GqlQuery("SELECT * " "FROM UsersDB " "WHERE user_name =:x ",x = new_member)
+					match_member = db.GqlQuery("SELECT * " "FROM UsersDB "
+										 "WHERE user_name =:x ",x = new_member)
 					member = match_member.get()
 					if member.user_groupID == admin.user_groupID:
 						return 0,"member has already added to this group",''

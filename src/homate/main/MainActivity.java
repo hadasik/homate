@@ -1,5 +1,4 @@
 package homate.main;
-import homate.config.HomateMenu;
 import homate.config.Homenu;
 import homate.config.R;
 import homate.server.HTTPIntentService;

@@ -217,8 +217,7 @@ public class Loged extends Activity {
 	
 	public void updateGroup(View view)
 	{
-		Toast.makeText(getApplicationContext(), "Loading... "+ "Please wait",
-				Toast.LENGTH_LONG).show();
+		
 		// save sharedPrefs, status is false until confirmation
 		SharedPreferences settings = getSharedPreferences( getResources().getString(R.string.PREFS_FILE), 0);
 		String userName = settings.getString( getResources().getString(R.string.PREFS_USER),"username");

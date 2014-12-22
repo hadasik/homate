@@ -1,30 +1,150 @@
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/bluelogo"
+    android:background="@drawable/plain"
+    android:orientation="vertical"
     tools:context=".Loged" >
 
-    <Button
-        android:id="@+id/logout"
+    
+     <Space
+            android:layout_width="24sp"
+            android:layout_height="30sp"
+            android:layout_gravity="center_horizontal|center_vertical" />
+     
+    <TextView
+        android:id="@+id/textLogged1"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/buttonNewGroup"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="55dp"
-        android:minWidth="200dip"
-        android:onClick="logout"
-        android:text="logout" />
-
-    <Button
-        android:id="@+id/buttonNewGroup"
+		android:layout_gravity="center_horizontal|center_vertical"
+        android:text="Homate,"
+        android:textColor="#ffa07a"
+        android:textSize="30sp"
+        android:textStyle="bold" />
+     <Space
+            android:layout_width="24sp"
+            android:layout_height="26sp"
+            android:layout_gravity="center_horizontal|center_vertical" />
+     
+    
+       <TextView
+        android:id="@+id/textLogged2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignLeft="@+id/logout"
-        android:layout_alignParentTop="true"
-        android:layout_marginTop="40dp"
-        android:minWidth="200dp"
-        android:onClick="newGroupPrefs"
-        android:text="open new group" />
+		android:layout_gravity="center_horizontal|center_vertical"
+        android:text="Manage your house"
+        android:textColor="#ffa07a"
+        android:textSize="20sp"
+        android:textStyle="bold" />
+       
+        <Space
+            android:layout_width="24sp"
+            android:layout_height="5sp"
+            android:layout_gravity="center_horizontal|center_vertical" />
+        
+    
+       <TextView
+        android:id="@+id/textLogged3"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+		android:layout_gravity="center_horizontal|center_vertical"
+        android:text="In a Fun Easy way"
+        android:textColor="#ffa07a"
+        android:textSize="20sp"
+        android:textStyle="bold" />
+          
+        <Space
+            android:layout_width="24sp"
+            android:layout_height="80sp"
+            android:layout_gravity="center" />
+          
+   <LinearLayout
+       android:layout_width="wrap_content"
+       android:layout_height="wrap_content"
+       android:orientation="horizontal" >
+       
+        <Space
+            android:layout_width="36sp"
+            android:layout_height="24sp"
+            android:layout_gravity="center" />
 
-</RelativeLayout>
+       <ImageView
+           android:id="@+id/buttonNewGroup"
+           android:layout_width="wrap_content"
+           android:layout_height="wrap_content"
+           android:contentDescription="new group"
+           android:gravity="center"
+           android:minWidth="100dp"
+           android:onClick="newGroupPrefs"
+           android:src="@drawable/group" />
+    
+    <TextView
+        android:id="@+id/textLogged4"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+		android:layout_gravity="center"
+        android:text="Create a new Group"
+        android:textColor="#ffa07a"
+        android:textSize="14sp"
+        android:textStyle="bold" />
+
+    </LinearLayout>
+    <Space
+            android:layout_width="24sp"
+            android:layout_height="24sp"
+            android:layout_gravity="center" />
+      
+      
+   <LinearLayout 
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal" 
+>
+
+       <Space
+            android:layout_width="36sp"
+            android:layout_height="24sp"
+            android:layout_gravity="center" />
+       
+       <ImageView
+           android:id="@+id/logout"
+           android:layout_width="match_parent"
+           android:layout_height="wrap_content"
+           android:gravity="center"
+           android:contentDescription="logout"
+           android:minWidth="100dip"
+           android:onClick="logout"
+           android:src="@drawable/logout" />
+     
+     <TextView
+        android:id="@+id/textLogged5"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+		android:layout_gravity="center_horizontal|center_vertical"
+        android:text="logout"
+        android:textColor="#ffa07a"
+        android:textSize="14sp"
+        android:textStyle="bold" />
+
+     </LinearLayout>          
+           
+     
+     <Space
+       android:layout_width="24sp"
+       android:layout_height="36sp"
+       android:layout_gravity="center" />
+           
+      <ImageView
+       android:contentDescription="logo"
+       android:id="@+id/loggedLogo"
+       android:layout_width="wrap_content"
+       android:layout_height="wrap_content"
+       android:layout_marginTop="40dp"
+       android:minWidth="200dp"
+       android:layout_gravity="center"
+       android:src="@drawable/home"
+         />
+           
+
+
+</LinearLayout>

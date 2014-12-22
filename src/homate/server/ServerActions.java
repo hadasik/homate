@@ -18,6 +18,13 @@ public class ServerActions
 	public static final String ACTION_CREATE_NEW_GROUP = "create_new_group";
 	public static final String ACTION_ADD_TO_GROUP = "add_to_group";
 	public static final String ACTION_EDIT_GROUP_NAME = "edit_group_name";
+	public static final String ACTION_ADD_MEMBER = "add_member";
+	public static final String ACTION_LEAVE_GROUP = "leave_group";
+	public static final String ACTION_GET_MEMBERS = "get_members";
+	public static final String ACTION_REMOVE_MEMBER = "remove_member";
+	public static final String ACTION_SET_ADMIN = "set_admin";
+	
+	
 	
 	public static final String ACTION_GET_GROUP = "get_group";
 
@@ -154,6 +161,149 @@ public class ServerActions
 
 			this.activity.startService(msgIntent); 
 			System.out.println("start http activity to set group name");
+		}
+		
+	}
+
+	public void add_member(String userName, String memberName) {
+		JSONObject info = new JSONObject();
+		/** Add data to JSON object */
+		try 
+		{
+			info.put(ACTION_COMMAND, ACTION_ADD_MEMBER);
+			info.put("username", userName);
+			info.put("memberName", memberName);
+			System.out.println("try to send to server request for member addition!!");
+		}
+		catch (JSONException e) 
+		{
+			Log.e("JSONObject","IOException:" +  e.toString());
+		} 
+		finally 
+		{
+			/** call intentService */
+			Intent msgIntent = new Intent(this.activity, HTTPIntentService.class);
+			msgIntent.putExtra(HTTPIntentService.PARAM_URL, URL);
+			msgIntent.putExtra(HTTPIntentService.PARAM_IN_MSG, info.toString());
+			msgIntent.putExtra(HTTPIntentService.PARAM_BR_ACTION_NAME, br_action_name);
+			System.out.println("finally send add member request to server");
+
+			this.activity.startService(msgIntent); 
+			System.out.println("start http activity to set group name");
+		}
+		
+	}
+
+	public void leaveGroup(String userName) {
+		JSONObject info = new JSONObject();
+		/** Add data to JSON object */
+		try 
+		{
+			info.put(ACTION_COMMAND, ACTION_LEAVE_GROUP);
+			info.put("username", userName);
+			System.out.println("try to send to server request for leaving group!!");
+		}
+		catch (JSONException e) 
+		{
+			Log.e("JSONObject","IOException:" +  e.toString());
+		} 
+		finally 
+		{
+			/** call intentService */
+			Intent msgIntent = new Intent(this.activity, HTTPIntentService.class);
+			msgIntent.putExtra(HTTPIntentService.PARAM_URL, URL);
+			msgIntent.putExtra(HTTPIntentService.PARAM_IN_MSG, info.toString());
+			msgIntent.putExtra(HTTPIntentService.PARAM_BR_ACTION_NAME, br_action_name);
+			System.out.println("finally send leave group request to server");
+
+			this.activity.startService(msgIntent); 
+			System.out.println("start http activity to leave group");
+		}
+		
+	}
+
+	public void get_members(String group) {
+		JSONObject info = new JSONObject();
+		/** Add data to JSON object */
+		try 
+		{
+			info.put(ACTION_COMMAND, ACTION_GET_MEMBERS);
+			info.put("groupID", group);
+			System.out.println("try to send to server request getting members!!");
+		}
+		catch (JSONException e) 
+		{
+			Log.e("JSONObject","IOException:" +  e.toString());
+		} 
+		finally 
+		{
+			/** call intentService */
+			Intent msgIntent = new Intent(this.activity, HTTPIntentService.class);
+			msgIntent.putExtra(HTTPIntentService.PARAM_URL, URL);
+			msgIntent.putExtra(HTTPIntentService.PARAM_IN_MSG, info.toString());
+			msgIntent.putExtra(HTTPIntentService.PARAM_BR_ACTION_NAME, br_action_name);
+			System.out.println("finally send get members request to server");
+
+			this.activity.startService(msgIntent); 
+			System.out.println("start http activity to get members");
+		}
+		
+	}
+
+	public void removeMember(String userName, String member) {
+		JSONObject info = new JSONObject();
+		/** Add data to JSON object */
+		try 
+		{
+			info.put(ACTION_COMMAND, ACTION_REMOVE_MEMBER);
+			info.put("username", userName);
+			info.put("memberName", member);
+
+		}
+		catch (JSONException e) 
+		{
+			Log.e("JSONObject","IOException:" +  e.toString());
+		} 
+		finally 
+		{
+			/** call intentService */
+			Intent msgIntent = new Intent(this.activity, HTTPIntentService.class);
+			msgIntent.putExtra(HTTPIntentService.PARAM_URL, URL);
+			msgIntent.putExtra(HTTPIntentService.PARAM_IN_MSG, info.toString());
+			msgIntent.putExtra(HTTPIntentService.PARAM_BR_ACTION_NAME, br_action_name);
+
+
+			this.activity.startService(msgIntent); 
+
+		}
+		
+	}
+
+	public void setAdmin(String userName, String member) {
+		JSONObject info = new JSONObject();
+		/** Add data to JSON object */
+		try 
+		{
+			info.put(ACTION_COMMAND, ACTION_SET_ADMIN);
+			info.put("username", userName);
+			info.put("newAdmin", member);
+
+		}
+		catch (JSONException e) 
+		{
+			Log.e("JSONObject","IOException:" +  e.toString());
+		} 
+		finally 
+		{
+			/** call intentService */
+			Intent msgIntent = new Intent(this.activity, HTTPIntentService.class);
+			msgIntent.putExtra(HTTPIntentService.PARAM_URL, URL);
+			msgIntent.putExtra(HTTPIntentService.PARAM_IN_MSG, info.toString());
+			msgIntent.putExtra(HTTPIntentService.PARAM_BR_ACTION_NAME, br_action_name);
+
+
+			this.activity.startService(msgIntent); 
+
 		}
 		
 	}
