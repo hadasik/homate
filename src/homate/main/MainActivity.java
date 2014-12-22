@@ -26,16 +26,8 @@ import android.widget.Toast;
 
 public class MainActivity extends Activity 
 {
-	public static final String PREFS_FILE	="UserPrefHomate.dat";
-	public static final String PREFS_STATS	="login_status";
-	//public static final String SERVER_LOGIN ="jukeMe.survey.ServerActions.br.login";ACTION_NEW_USER_REGISTER
-	public static final String SERVER_LOGIN ="Homate.server.ServerActions.ACTION_NEW_USER_REGISTER";
 	final protected String TAG = this.getClass().getName();
-	final protected String SENDER_ID = "882694835341";
 	public ProgressDialog pd;
-	public static final String PREFS_USER 	="username";
-	public static final String PREFS_PWD	="password";
-	public static final String PREFS_GRP	="userGroupID";
 	private BroadcastReceiver receiver;
 	private IntentFilter filter;
 	private ServerActions myactions;
@@ -50,33 +42,38 @@ public class MainActivity extends Activity
 		setContentView(R.layout.activity_main);
 
 		Log.d("Main","onCreate() called");
-		myactions = new ServerActions(this, SERVER_LOGIN);
+		myactions = new ServerActions(this, getResources().getString(R.string.SERVER_LOGIN));
 		
 
 		// setup receiver - should check if there are some updates in server data base
 		receiver = new BroadcastReceiver() {
 			@Override
 			public void onReceive(Context context, Intent intent) {
-				System.out.println("LoginActivity"+"Broadcast Received");
+				System.out.println("===LoginActivity "+"Broadcast Received===");
 				String response = intent.getStringExtra(HTTPIntentService.PARAM_OUT_MSG);
+				System.out.println("========after getting a response ====");
 				if (!response.equals("")) {
 					try {
 						JSONObject obj = new JSONObject(response);
+						System.out.println("========after creating json obj ====");
 						if (obj != null ) {
 							//dismiss progress dialog
 							pd.dismiss();
+							System.out.println("========before json to str ====");
 							System.out.println(obj.toString());  //TODO debug-remove
+							System.out.println("========after json to str ====");
 
 							if (obj.getString(ServerActions.SERVER_RET_VAL).equals("1")) {
 								/** Register Verified */
 
 								// edit SharedPref and change status to true
 								Log.d("MainActivity","Saving SharedPrefs");
-								SharedPreferences settings = getSharedPreferences(PREFS_FILE, 0);
+								SharedPreferences settings = getSharedPreferences( getResources().getString(R.string.PREFS_FILE), 0);
 								SharedPreferences.Editor editor = settings.edit();
-								editor.putBoolean(PREFS_STATS, true);
+								editor.putBoolean(getResources().getString(R.string.PREFS_STATS), true);
 								System.out.println("NEW group id is:"+obj.getString(ServerActions.SERVER_DATA));								
-								editor.putString(PREFS_GRP, obj.getString(ServerActions.SERVER_DATA));
+								editor.putString(getResources().getString(R.string.PREFS_GRP), obj.getString(ServerActions.SERVER_DATA));
+								editor.putString(getResources().getString(R.string.PREFS_GRP_NAME), obj.getString(ServerActions.SERVER_DATA2));
 								editor.commit();
 								
 								
@@ -93,6 +90,7 @@ public class MainActivity extends Activity
 									launcher.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);//remove login screen from stack
 									launcher.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);// Stay single instance
 									startActivity(launcher);
+									finish();
 								} catch (RuntimeException e) {
 									Log.e("MainActivity","Failed Call Menu: "+e);
 								}
@@ -118,34 +116,30 @@ public class MainActivity extends Activity
 		};
 
 		// Register filter
-		filter = new IntentFilter(SERVER_LOGIN);
+		filter = new IntentFilter(getResources().getString(R.string.SERVER_LOGIN));
 		
 		// check saved SharedPref for login status
-				SharedPreferences settings = getSharedPreferences(PREFS_FILE, 0);
-				boolean login_stats = settings.getBoolean(PREFS_STATS, false);
-				if (login_stats) {
-					try {
-						// Skip login 
-						Log.d("LoginActivity","Skip Login");
-						//Intent launcher = new Intent(this, Loged.class);
-						String group = settings.getString(PREFS_GRP,"0");
-						Intent launcher;
-						if(group.equals("0")){
-							launcher = new Intent(this, Loged.class);
-						}else{
-							launcher = new Intent(this, Homenu.class);
-						}
-						startActivity(launcher);
-						
-						//userName = settings.getString(PREFS_USER,"username");
-						//passWord = settings.getString(PREFS_PWD,"password");
-						//myactions.new_user_registery(userName, passWord);
-					} catch (RuntimeException e) {
-						Log.e("LoginActivity","Failed Call Menu: "+e);
-					}
-				}		 
+						 
 	}
 
+	public void onStart(){
+		super.onStart();
+		
+		SharedPreferences settings = getSharedPreferences(getResources().getString(R.string.PREFS_FILE), 0);
+		boolean login_stats = settings.getBoolean(getResources().getString(R.string.PREFS_STATS), false);
+		if (login_stats) {
+			try {
+				pd = ProgressDialog.show(this, "Loading..", "Please wait",true,true);
+				
+				userName = settings.getString(getResources().getString(R.string.PREFS_USER),"username");
+				passWord = settings.getString(getResources().getString(R.string.PREFS_PWD),"password");
+				myactions.new_user_registery(userName, passWord);
+			} catch (RuntimeException e) {
+				Log.e("LoginActivity","Failed Call Menu: "+e);
+			}
+		}
+	}
+	
 	@Override
 	public void onResume() {
 		super.onResume();
@@ -171,14 +165,14 @@ public class MainActivity extends Activity
 	{
 		pd = ProgressDialog.show(this, "Loading..", "Please wait",true,true);
 		// save sharedPrefs, status is false until confirmation
-		SharedPreferences settings = getSharedPreferences(PREFS_FILE, 0);
+		SharedPreferences settings = getSharedPreferences(getResources().getString(R.string.PREFS_FILE), 0);
 		SharedPreferences.Editor editor = settings.edit();
-		editor.putBoolean(PREFS_STATS, false);
+		editor.putBoolean(getResources().getString(R.string.PREFS_STATS), false);
 		userName = (((EditText)findViewById(R.id.userName)).getText().toString());
 		passWord = (((EditText)findViewById(R.id.password)).getText().toString());
 		
-		editor.putString(PREFS_USER, userName);
-		editor.putString(PREFS_PWD, passWord);
+		editor.putString(getResources().getString(R.string.PREFS_USER), userName);
+		editor.putString(getResources().getString(R.string.PREFS_PWD), passWord);
 		editor.commit();
 		myactions.new_user_registery(userName, passWord);
 		
@@ -189,6 +183,9 @@ public class MainActivity extends Activity
 		finish();
 	}
 
+	
+
+	
 	@Override
 	public void onBackPressed() 
 	{

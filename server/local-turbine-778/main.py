@@ -11,7 +11,6 @@ class UsersDB(db.Model):
 	user_groupID = db.IntegerProperty(default = 0)
 
 class GroupsDB(db.Model):
-	#groupID = db.StringProperty(required=True,auto_now_add=True)
 	groupID = db.IntegerProperty (indexed = True,default = 0)
 	group_name = db.StringProperty(required=True)
 	group_admin = db.StringProperty(required=True)
@@ -44,18 +43,26 @@ class MainPage(webapp2.RequestHandler):
 		n = json.dumps(m)
 		o = json.loads(n)
 		action = o['action']
-		userName = o['username']
 
 		if 'new_user_registry' in action:
+			userName = o['username']
 			passWord = o['password']
 			msg = dba.new_user_registry(userName,passWord)
-			result = {'action' : action,'return value' : msg[0],'msg' : msg[1], 'data':msg[2]}
+			result = {'action' : action,'return value' : msg[0],'msg' : msg[1], 'data':msg[2],'data2' : msg[3]}
 		elif 'get_group' in action:
+			userName = o['username']
 			msg = dba.get_group(userName)
-			result = {'action' : action,'return value' : msg}
+			result = {'action' : action,'return value' : msg[0], 'msg':msg[1]}
 		elif 'create_new_group' in action:
+			userName = o['username']
 			msg = dba.create_new_group(userName)
 			result = {'action' : action,'return value' : msg[0], 'msg':msg[1], 'data':msg[2]}
+		elif 'edit_group_name' in action:
+			group_id = o['groupID']
+			groupName = o['groupName']
+			msg = dba.edit_group_name(group_id, groupName)
+			result = {'action' : action,'return value' : msg}
+
 
 		self.response.headers['Content-Type'] = 'application/JSON'
 		self.response.out.write(json.dumps(result))
@@ -72,18 +79,38 @@ class dataBaseClass:
 				UsersDB(user_name = username,user_password = password,
 					is_admin = False).put()
 
-				return 1,username+' was added successfully', 0
+				return 1,username+' was added successfully', 0, "House Of Fun"
 			elif user.user_password == password:
-				return 1,username+' Welcome Back!', user.user_groupID
+
+				match2 = db.GqlQuery("SELECT * " "FROM GroupsDB " "WHERE groupID =:x ", x=user.user_groupID)
+				group=match2.get()
+				return 1,username+' Welcome Back!', user.user_groupID, group.group_name
 			else:
-				return 0,'Wrong Password',''
+				return 0,'Wrong Password','',"House Of Fun"
 		except datastore_errors,e:
-			return 0,'adding failed : '+e,''
+			return 0,'adding failed : '+e,'',"House Of Fun"
 
 	def get_group(self, username):
-			match = db.GqlQuery("SELECT * " "FROM UsersDB " "WHERE user_name =:x ", x=username)
-			user=match.get()
-			return user.user_groupID
+
+			match1 = db.GqlQuery("SELECT * " "FROM UsersDB " "WHERE user_name =:x ", x=username)
+			user=match1.get()
+			
+			if user.user_groupID != 0:
+				match2 = db.GqlQuery("SELECT * " "FROM GroupsDB " "WHERE groupID =:x ", x=user.user_groupID)
+				group=match2.get()
+				return user.user_groupID, group.group_name
+			else:
+				return user.user_groupID, "House Of Fun"
+
+	def edit_group_name(self, group_id, groupName):
+			try:
+				match = db.GqlQuery("SELECT * " "FROM GroupsDB " "WHERE groupID =:x ", x=int(group_id))
+				group=match.get()
+				group.group_name = groupName
+				group.put()
+				return 1
+			except datastore_errors,e:
+				return 0
 
 	def create_new_group(self, adminName):
 		match3 = db.GqlQuery("SELECT * " "FROM GroupsDB " "WHERE group_admin =:x ",x='counter')

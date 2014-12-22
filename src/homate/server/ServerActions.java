@@ -17,6 +17,7 @@ public class ServerActions
 	public static final String ACTION_NEW_USER_REGISTER = "new_user_registry";
 	public static final String ACTION_CREATE_NEW_GROUP = "create_new_group";
 	public static final String ACTION_ADD_TO_GROUP = "add_to_group";
+	public static final String ACTION_EDIT_GROUP_NAME = "edit_group_name";
 	
 	public static final String ACTION_GET_GROUP = "get_group";
 
@@ -24,6 +25,7 @@ public class ServerActions
 	public static final String SERVER_RET_VAL = "return value";
 	public static final String SERVER_MSG = "msg";
 	public static final String SERVER_DATA = "data";
+	public static final String SERVER_DATA2 = "data2";
 	public static final String SERVER_ACTION = "action";
 
 	/* Variables */
@@ -126,4 +128,35 @@ public class ServerActions
 		}
 		
 	}
+
+	public void edit_group_name(String groupID, String groupName) {
+		JSONObject info = new JSONObject();
+		/** Add data to JSON object */
+		try 
+		{
+			info.put(ACTION_COMMAND, ACTION_EDIT_GROUP_NAME);
+			info.put("groupID", groupID);
+			info.put("groupName", groupName);
+			System.out.println("try to send to server request for group name edit!!");
+		}
+		catch (JSONException e) 
+		{
+			Log.e("JSONObject","IOException:" +  e.toString());
+		} 
+		finally 
+		{
+			/** call intentService */
+			Intent msgIntent = new Intent(this.activity, HTTPIntentService.class);
+			msgIntent.putExtra(HTTPIntentService.PARAM_URL, URL);
+			msgIntent.putExtra(HTTPIntentService.PARAM_IN_MSG, info.toString());
+			msgIntent.putExtra(HTTPIntentService.PARAM_BR_ACTION_NAME, br_action_name);
+			System.out.println("finally send group name edit request to server");
+
+			this.activity.startService(msgIntent); 
+			System.out.println("start http activity to set group name");
+		}
+		
+	}
+	
+	
 }

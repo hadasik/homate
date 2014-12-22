@@ -1,9 +1,10 @@
 package homate.main;
+import java.util.Timer;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import homate.config.GroupPrefs;
-import homate.config.HomateMenu;
 import homate.config.Homenu;
 import homate.config.R;
 import homate.server.HTTPIntentService;
@@ -18,33 +19,35 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
 import android.view.Menu;
 import android.view.View;
 import android.view.Window;
-import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+
+
+
 public class Loged extends Activity {
 	
-	public static final String PREFS_STATS	="login_status";
-	public static final String PREFS_USER 	="username";
-	public static final String PREFS_GRP	="userGroupID";
 	private BroadcastReceiver receiver;
 	private IntentFilter filter;
 	private ServerActions myactions;
 	public ProgressDialog pd;
-	public static final String PREFS_FILE	="UserPrefHomate.dat";
-	public static final String SERVER_GRP ="Homate.server.ServerActions.ACTION_GET_GROUP";
-	
+	Timer timer = new Timer();
+	private Handler handler;
+	private boolean isUpdating;
+	private Thread groupUpdaterInstance;
 	
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		this.requestWindowFeature(Window.FEATURE_NO_TITLE);
 		setContentView(R.layout.activity_loged);	
+		handler = new Handler();
 		
-myactions = new ServerActions(this, SERVER_GRP);
+		myactions = new ServerActions(this,  getResources().getString(R.string.SERVER_GRP));
 		
 
 		// setup receiver - should check if there are some updates in server data base
@@ -58,19 +61,23 @@ myactions = new ServerActions(this, SERVER_GRP);
 						JSONObject obj = new JSONObject(response);
 						if (obj != null ) {
 							//dismiss progress dialog
-							pd.dismiss();
+							
 							System.out.println(obj.toString());  //TODO debug-remove
 							
 							if(obj.getString(ServerActions.ACTION_COMMAND).equals(ServerActions.ACTION_GET_GROUP)){
 								if (!(obj.getString(ServerActions.SERVER_RET_VAL).equals("0"))) {
 									/** Register Verified */
 									
+									isUpdating = false;
+									groupUpdaterInstance.interrupt();
+									
 									// edit SharedPref and change status to true
 									Log.d("MainActivity","Saving SharedPrefs");
-									SharedPreferences settings = getSharedPreferences(PREFS_FILE, 0);
+									SharedPreferences settings = getSharedPreferences( getResources().getString(R.string.PREFS_FILE), 0);
 									SharedPreferences.Editor editor = settings.edit();
 									System.out.println("group id is:"+obj.getString(ServerActions.SERVER_RET_VAL));
-									editor.putString(PREFS_GRP, obj.getString(ServerActions.SERVER_RET_VAL));
+									editor.putString( getResources().getString(R.string.PREFS_GRP), obj.getString(ServerActions.SERVER_RET_VAL));
+									editor.putString( getResources().getString(R.string.PREFS_GRP_NAME), obj.getString(ServerActions.SERVER_MSG));
 									editor.commit();
 									
 									// call menu
@@ -95,13 +102,13 @@ myactions = new ServerActions(this, SERVER_GRP);
 								if(obj.getString(ServerActions.SERVER_RET_VAL).equals("1")){
 									// edit SharedPref and change status to true
 									Log.d("MainActivity","Saving SharedPrefs");
-									SharedPreferences settings = getSharedPreferences(PREFS_FILE, 0);
+									SharedPreferences settings = getSharedPreferences( getResources().getString(R.string.PREFS_FILE), 0);
 									SharedPreferences.Editor editor = settings.edit();
 									System.out.println("group id is:"+obj.getString(ServerActions.SERVER_DATA));
-									editor.putString(PREFS_GRP, obj.getString(ServerActions.SERVER_DATA));
+									editor.putString( getResources().getString(R.string.PREFS_GRP), obj.getString(ServerActions.SERVER_DATA));
 									editor.commit();
 									System.out.println("respons: "+obj.toString());
-									System.out.println("saved group id: " + settings.getString(PREFS_GRP,"UU"));
+									System.out.println("saved group id: " + settings.getString( getResources().getString(R.string.PREFS_GRP),"UU"));
 									Toast.makeText(context, "GROUP CREATION SUCCESSFUL",
 											Toast.LENGTH_LONG).show();
 									try {
@@ -137,7 +144,7 @@ myactions = new ServerActions(this, SERVER_GRP);
 		};
 
 		// Register filter
-		filter = new IntentFilter(SERVER_GRP);
+		filter = new IntentFilter( getResources().getString(R.string.SERVER_GRP));
 		
 		
 	}
@@ -149,14 +156,26 @@ myactions = new ServerActions(this, SERVER_GRP);
 		return true;
 	}
 	
+
 	public void onExit(View view){
-		
+
 		finish();
+	}
+	
+	public void onStart(){
+		super.onStart();
+		groupUpdaterInstance= new Thread(new GroupUpdater());
+
+		
 	}
 	
 	public void onResume() {
 		super.onResume();
 		registerReceiver(receiver, filter);	
+		
+		isUpdating = true;
+		groupUpdaterInstance.start();
+		
 		}
 	
 	@Override
@@ -166,21 +185,43 @@ myactions = new ServerActions(this, SERVER_GRP);
 		unregisterReceiver(receiver);
 		// call finish on self
 		
+		isUpdating = false;
+		groupUpdaterInstance.interrupt();
+		
 	}
 	
+	class GroupUpdater implements Runnable {
+			        @Override
+			        public void run() {
+			            while (isUpdating) {
+			                try {
+			                    Thread.sleep(15000);
+			                } catch (InterruptedException e) {
+			                    e.printStackTrace();
+			                }
+			                handler.post(new Runnable() {
+			                    @Override
+			                    public void run() {
+			                        updateGroup(null);
+			                    }
+			                });
+			            }
+			        }
+			    }
 	
-	public void onRequest(View view){
+	//public void onRequest(View view){
 
 		//Intent intent = new Intent(this, Loged.class);
 		//startActivity(intent);
-	}
+	//}
 	
 	public void updateGroup(View view)
 	{
-		pd = ProgressDialog.show(this, "Loading..", "Please wait",true,true);
+		Toast.makeText(getApplicationContext(), "Loading... "+ "Please wait",
+				Toast.LENGTH_LONG).show();
 		// save sharedPrefs, status is false until confirmation
-		SharedPreferences settings = getSharedPreferences(PREFS_FILE, 0);
-		String userName = settings.getString(PREFS_USER,"username");
+		SharedPreferences settings = getSharedPreferences( getResources().getString(R.string.PREFS_FILE), 0);
+		String userName = settings.getString( getResources().getString(R.string.PREFS_USER),"username");
 		
 		myactions.get_group(userName);
 	}
@@ -201,11 +242,12 @@ myactions = new ServerActions(this, SERVER_GRP);
 		editalert.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
 			public void onClick(DialogInterface dialog, int whichButton) 
 			{
-				SharedPreferences settings = getSharedPreferences(PREFS_FILE, 0);
+				SharedPreferences settings = getSharedPreferences( getResources().getString(R.string.PREFS_FILE), 0);
 				SharedPreferences.Editor editor = settings.edit();
-				editor.putBoolean(PREFS_STATS, false);
+				editor.putBoolean( getResources().getString(R.string.PREFS_STATS), false);
 				editor.commit();
-				
+				Intent intent = new Intent(getBaseContext(),MainActivity.class);
+				startActivity(intent);
 				
 				
 				finish();
@@ -221,15 +263,53 @@ myactions = new ServerActions(this, SERVER_GRP);
 	}
 	
 	public void newGroupPrefs(View view){
-		pd = ProgressDialog.show(this, "Loading..", "Please wait",true,true);
+		Toast.makeText(getApplicationContext(), "Loading... "+ "Please wait",
+				Toast.LENGTH_LONG).show();
+		
 		// save sharedPrefs, status is false until confirmation
-		SharedPreferences settings = getSharedPreferences(PREFS_FILE, 0);
-		String userName = settings.getString(PREFS_USER,"username");
+		SharedPreferences settings = getSharedPreferences( getResources().getString(R.string.PREFS_FILE), 0);
+		String userName = settings.getString( getResources().getString(R.string.PREFS_USER),"username");
 		
 		myactions.create_group(userName);
 		
 	
 		
 	}
+	
+	public void onBackPressed() 
+	{
+		
+		final AlertDialog.Builder editalert = new AlertDialog.Builder(this);
+		editalert.setTitle("Exit");
+		editalert.setIcon(android.R.drawable.ic_dialog_alert);
+		editalert.setCancelable(true);
+		final TextView in = new TextView(this);
+		in.setText("Do you really wish to exit? ");
+		in.setTextSize(22);
+		editalert.setView(in);
+		editalert.setView(in);
+		editalert.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+			public void onClick(DialogInterface dialog, int whichButton) 
+			{
+				System.out.println("backpressed");
+
+				isUpdating = false;
+				groupUpdaterInstance.interrupt();
+				
+				finish();
+			}
+		});
+		editalert.setNegativeButton("No", new DialogInterface.OnClickListener() {
+			public void onClick(DialogInterface dialog, int whichButton) {
+			}
+		});
+		editalert.create();
+
+		editalert.show();
+	}
+	
+
+	
+	
 	
 }

@@ -2,8 +2,29 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/mainentry"
+    android:background="@drawable/bluelogo"
     tools:context=".Loged" >
 
+    <Button
+        android:id="@+id/logout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/buttonNewGroup"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="55dp"
+        android:minWidth="200dip"
+        android:onClick="logout"
+        android:text="logout" />
+
+    <Button
+        android:id="@+id/buttonNewGroup"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/logout"
+        android:layout_alignParentTop="true"
+        android:layout_marginTop="40dp"
+        android:minWidth="200dp"
+        android:onClick="newGroupPrefs"
+        android:text="open new group" />
 
 </RelativeLayout>

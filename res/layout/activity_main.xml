@@ -39,9 +39,11 @@
         android:gravity="center"
         android:hint="Password"
         android:textColor="#FFFFFF"
-        android:textColorHint="#FFFFFF" >
+        android:textColorHint="#FFFFFF" 
+        android:inputType="textPassword">
 
         <requestFocus />
     </EditText>
+
 
 </RelativeLayout>
