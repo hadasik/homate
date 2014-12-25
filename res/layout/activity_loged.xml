@@ -85,6 +85,8 @@
 		android:layout_gravity="center"
         android:text="Create a new Group"
         android:textColor="#ffa07a"
+        android:onClick="newGroupPrefs"
+        android:clickable="true"
         android:textSize="14sp"
         android:textStyle="bold" />
 
@@ -124,7 +126,9 @@
         android:text="logout"
         android:textColor="#ffa07a"
         android:textSize="14sp"
-        android:textStyle="bold" />
+        android:textStyle="bold"
+        android:onClick="logout"
+        android:clickable="true" />
 
      </LinearLayout>          
            

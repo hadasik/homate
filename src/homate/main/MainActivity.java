@@ -128,7 +128,7 @@ public class MainActivity extends Activity
 		boolean login_stats = settings.getBoolean(getResources().getString(R.string.PREFS_STATS), false);
 		if (login_stats) {
 			try {
-				pd = ProgressDialog.show(this, "Loading..", "Please wait",true,true);
+				pd = ProgressDialog.show(this, "Loading...", "Please wait",true,true);
 				
 				userName = settings.getString(getResources().getString(R.string.PREFS_USER),"username");
 				passWord = settings.getString(getResources().getString(R.string.PREFS_PWD),"password");

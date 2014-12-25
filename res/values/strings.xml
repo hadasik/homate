@@ -14,7 +14,6 @@
     <string name="action_settings">Settings</string>
     <string name="title_activity_group_prefs">GroupPrefs</string>
     <string name="title_activity_homenu">Homenu</string>
-    
     <string name="PREFS_FILE">UserPrefHomate.dat</string>
     <string name="PREFS_STATS">login_status</string>
     <string name="SERVER_LOGIN">Homate.server.ServerActions.ACTION_NEW_USER_REGISTER</string>
@@ -24,9 +23,7 @@
     <string name="PREFS_GRP_NAME">userGroupNAME</string>
     <string name="SERVER_GRP">Homate.server.ServerActions.ACTION_GET_GROUP</string>
     <string name="EDIT_GROUP_NAME">Homate.server.ServerActions.ACTION_EDIT_GROUP_NAME</string>
-    
-
-	
-
+    <string name="SHOPPING">shopping</string>
+    <string name="title_activity_shopping">Shopping</string>
 
 </resources>

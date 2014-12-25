@@ -11,7 +11,6 @@ import homate.server.HTTPIntentService;
 import homate.server.ServerActions;
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -35,7 +34,6 @@ public class Loged extends Activity {
 	private BroadcastReceiver receiver;
 	private IntentFilter filter;
 	private ServerActions myactions;
-	public ProgressDialog pd;
 	Timer timer = new Timer();
 	private Handler handler;
 	private boolean isUpdating;
@@ -104,11 +102,9 @@ public class Loged extends Activity {
 									Log.d("MainActivity","Saving SharedPrefs");
 									SharedPreferences settings = getSharedPreferences( getResources().getString(R.string.PREFS_FILE), 0);
 									SharedPreferences.Editor editor = settings.edit();
-									System.out.println("group id is:"+obj.getString(ServerActions.SERVER_DATA));
 									editor.putString( getResources().getString(R.string.PREFS_GRP), obj.getString(ServerActions.SERVER_DATA));
 									editor.commit();
 									System.out.println("respons: "+obj.toString());
-									System.out.println("saved group id: " + settings.getString( getResources().getString(R.string.PREFS_GRP),"UU"));
 									Toast.makeText(context, "GROUP CREATION SUCCESSFUL",
 											Toast.LENGTH_LONG).show();
 									try {
@@ -135,8 +131,6 @@ public class Loged extends Activity {
 						Log.e("BroadcastReceiver","JSON error: "+e);
 					} 
 				}else{
-					//dismiss progress dialog
-					pd.dismiss();
 					Toast.makeText(context,"Unexpected error occured,Please Try again later",
 							Toast.LENGTH_LONG).show();
 				}
@@ -262,9 +256,6 @@ public class Loged extends Activity {
 	}
 	
 	public void newGroupPrefs(View view){
-		Toast.makeText(getApplicationContext(), "Loading... "+ "Please wait",
-				Toast.LENGTH_LONG).show();
-		
 		// save sharedPrefs, status is false until confirmation
 		SharedPreferences settings = getSharedPreferences( getResources().getString(R.string.PREFS_FILE), 0);
 		String userName = settings.getString( getResources().getString(R.string.PREFS_USER),"username");

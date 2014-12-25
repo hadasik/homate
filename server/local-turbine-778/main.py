@@ -91,10 +91,74 @@ class MainPage(webapp2.RequestHandler):
 			result = {'action' : action,'return value' : msg[0], 'msg':msg[1]}
 
 
+		elif 'get_shopping_list' in action:
+			groupID = o['groupID']
+			msg = dba.get_shopping_list(groupID)
+			result = {'action' : action,'return value' : msg[0], 'msg':msg[1]}
+
+		elif 'remove_shopping_item' in action:
+			groupID = o['groupID']
+			username = o['username']
+			items = o['items']
+			msg = dba.remove_shopping_item(groupID, username,items)
+			result = {'action' : action,'return value' : msg[0], 'msg':msg[1]}
+
+		elif 'add_shopping_item' in action:
+			groupID = o['groupID']
+			username = o['username']
+			item = o['item']
+			msg = dba.add_shopping_item(groupID, username,item)
+			result = {'action' : action,'return value' : msg[0], 'msg':msg[1]}
+
+
 		self.response.headers['Content-Type'] = 'application/JSON'
 		self.response.out.write(json.dumps(result))
 
 class dataBaseClass:
+
+	def get_shopping_list(self, groupID):
+		try:
+			match = db.GqlQuery("SELECT * " "FROM ShopListDB " "WHERE group_id =:x ",x=groupID)
+			items=match.fetch(100)
+			itemsList = ""
+			for i in range (0,len(items)):
+				itemsList+=items[i].product
+				itemsList+='#'
+			return 1, itemsList
+		except datastore_errors,e:
+			return 0,'getting items list failed : '+e,''
+
+	def remove_shopping_item(self, groupID,username,items):
+		try:
+			match1 = db.GqlQuery("SELECT * " "FROM UsersDB " "WHERE user_name =:x ",x=username)
+			user=match1.get()
+			if user.user_groupID != int(groupID):
+				return 0, "you are not a member in this group anymore"
+			else:
+				items_to_remove = items.split('#')
+				match2 = db.GqlQuery("SELECT * " "FROM ShopListDB " "WHERE group_id =:x ",x=groupID)
+				group_items=match2.fetch(100)
+				for item in items_to_remove:
+					for i in group_items:
+						if i.product == item:
+							i.delete()
+				return self.get_shopping_list(groupID)
+		except datastore_errors,e:
+			return 0,'removing failed : '+e,''
+
+	def add_shopping_item(self, groupID,username,item):
+		try:
+			match1 = db.GqlQuery("SELECT * " "FROM UsersDB " "WHERE user_name =:x ",x=username)
+			user=match1.get()
+			if user.user_groupID != int(groupID):
+				return 0, "you are not a member in this group anymore"
+			elif '#' in item:
+				return 0, '# is not allowed'
+			else:
+				ShopListDB(group_id = groupID, product = item).put()
+				return self.get_shopping_list(groupID)
+		except datastore_errors,e:
+			return 0,'removing failed : '+e,''
 
 	def add_new_member(self,userName,memberName):
 		try:
@@ -192,7 +256,7 @@ class dataBaseClass:
 				if user2.user_groupID == user1.user_groupID:
 					match3 = db.GqlQuery("SELECT * " "FROM GroupsDB " "WHERE group_admin =:x ",x=username)
 					user3 = match3.get()
-					user3.adminName = newAdmin
+					user3.group_admin = newAdmin
 					user3.put()
 					user2.is_admin = True
 					user1.is_admin = False
