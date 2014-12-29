@@ -16,11 +16,19 @@ class GroupsDB(db.Model):
 	group_admin = db.StringProperty(required=True)
 
 class PaymentsDB(db.Model):
-	group_id = db.StringProperty(required=True)
+	bill_id = db.IntegerProperty(required=True,default = 0)
+	group_id = db.IntegerProperty(required=True)
 	category = db.StringProperty(choices = ('water', 'phone', 'gas', 'electricity',
-		'groceries ', 'rent', 'Internet', 'TV', 'municipal_tax', 'building_committee'))
+		'groceries ', 'rent', 'Internet', 'TV', 'municipal_tax', 'building_committee','other'))
 	bill = db.IntegerProperty()
 	date = db.DateProperty()
+	is_payed = db.BooleanProperty(required=True, default = False)
+
+class UserPaymentsDB(db.Model):
+	bill_id = db.IntegerProperty(required=True,default = 0)
+	user_name = db.StringProperty(required=True)
+	status = db.IntegerProperty(required=True,default = 0)
+# 0 = not payed, 1 = payed,unverifyed, 2 - payed, verifyed
 
 class ShopListDB(db.Model):
 	group_id = db.StringProperty(required=True)
@@ -90,7 +98,6 @@ class MainPage(webapp2.RequestHandler):
 			msg = dba.set_admin(username,newAdmin )
 			result = {'action' : action,'return value' : msg[0], 'msg':msg[1]}
 
-
 		elif 'get_shopping_list' in action:
 			groupID = o['groupID']
 			msg = dba.get_shopping_list(groupID)
@@ -110,11 +117,167 @@ class MainPage(webapp2.RequestHandler):
 			msg = dba.add_shopping_item(groupID, username,item)
 			result = {'action' : action,'return value' : msg[0], 'msg':msg[1]}
 
+		elif 'show_archive' in action:
+			groupID = o['groupID']
+			category = o['category']
+			msg = dba.show_archive(groupID, category)
+			result = {'action' : action,'return value' : msg[0], 'msg':msg[1]}
+
+		elif 'add_bill' in action:
+			groupID = o['groupID']
+			category = o['category']
+			msg = dba.add_bill(groupID, category)
+			result = {'action' : action,'return value' : msg[0], 'msg':msg[1]}
+
+		elif 'show_bill' in action:
+			groupID = o['groupID']
+			category = o['category']
+			username = o['username']
+			bill = o['bill']
+			date = o['date']
+			msg = dba.show_bill(groupID, category,username, bill, date)
+			result = {'action' : action,'return value' : msg[0], 'msg':msg[1]}
+
+		elif 'get_total' in action:
+			groupID = o['groupID']
+			username = o['username']
+			msg = dba.get_total(groupID, username)
+			result = {'action' : action,'return value' : msg[0], 'msg':msg[1]}
+
+		elif 'set_payment' in action:
+			admin_name = o['admin_name']
+			username = o['username']
+			bill_id = o['bill_id']
+			msg = dba.set_payment(admin_name, username,bill_id)
+			result = {'action' : action,'return value' : msg[0], 'msg':msg[1]}
+
+
+		elif 'request_approval' in action:
+			username = o['username']
+			bill_id = o['bill_id']
+			msg = dba.set_payment(username,bill_id)
+			result = {'action' : action,'return value' : msg[0], 'msg':msg[1]}
 
 		self.response.headers['Content-Type'] = 'application/JSON'
 		self.response.out.write(json.dumps(result))
 
 class dataBaseClass:
+
+	def add_to_archive(self, group_id, bill_id):
+		
+		match1 = db.GqlQuery("SELECT * " "FROM UsersDB " "WHERE group_id =:x ",x=int(group_id))
+		members1=match1.fetch(100)
+		match2 = db.GqlQuery("SELECT * " "FROM UserPaymentsDB " "WHERE bill_id =:x ",x=int(bill_id))
+		members2=match2.fetch(100)
+		if len(members1)==len(members2):
+			
+			for member in members2:
+				if member.status != 2:
+					return 
+			match3 = db.GqlQuery("SELECT * " "FROM PaymentsDB " "WHERE bill_id =:x ",x=int(bill_id))
+			payment=match3.get()
+			payment.is_payed = True
+			payment.put()
+		return
+
+	def show_archive(self, group_id, category):
+
+		ans = ""
+		match = db.GqlQuery("SELECT * " "FROM PaymentsDB " "WHERE group_id =:x, category =:y, paid =:z ",
+							 x=int(group_id), y = category, z = True)
+		bills = match.fetch()
+		for bill in bills:
+			ans += "for date: " + bill.date + "total: " + bill.bill + "#"
+		return 1,ans
+
+	def add_bill(self, group_id, username,category, bill, date):
+
+		match1 = db.GqlQuery("SELECT * " "FROM UsersDB " "WHERE username =:x ",x=username)
+		member = match1.fetch()
+		if member.is_admin == True and member.group_id == int(group_id):
+			match2 = db.GqlQuery("SELECT * " "FROM PaymentsDB ")
+			payments = match2.fetch()
+			bill_count = len(payments) + 1
+			PaymentsDB(bill_id = bill_count, group_id = group_id, 
+						category = category, date =date, bill = bill).put()
+			return 1,"bill was added successfuly"
+		else:
+			return 0, "you are not permitted to add new bill"
+
+
+	def show_bill(self, group_id,category):
+		ans = ""
+		match1 = db.GqlQuery("SELECT * " "FROM PaymentsDB " "WHERE group_id =:x, category =:y paid =:z ",
+							x = group_id, y = category, z = False )
+		bills=match1.fetch()
+		match2 = db.GqlQuery("SELECT * " "FROM UsersDB " "WHERE group_id =:x", x = group_id)
+		members=match2.fetch()
+
+		for bill in bills:
+			ans += "for date: " + bill.date + "total: " + bill.bill + "*"
+			for member in members:
+				match3 = db.GqlQuery("SELECT * " "FROM UserPaymentsDB " "WHERE user_name =:x, bill_id =:y",
+										x = member.user_name, y = bill.bill_id )
+				user=match3.get()
+				ans += member.user_name + "*"
+				if user == None:
+					ans +=  "0" + "*"
+				else:
+					ans += ""+ user.status + "*"
+			ans += "#"
+		return 1, ans
+
+	def get_total(self, username, group_id):
+
+		total_sum = 0
+		match1 = db.GqlQuery("SELECT * " "FROM UsersDB " "WHERE group_id =:x", x = group_id)
+		members=match1.fetch()
+		numOfMembers = len(members)
+		match2 = db.GqlQuery("SELECT * " "FROM PaymentsDB " "WHERE group_id =:x, paid =:z ",
+							x = group_id, z = False )
+		bills=match2.fetch()
+		for bill in bills:
+			match3 = db.GqlQuery("SELECT * " "FROM UserPaymentsDB " "WHERE user_name =:x, bill_id =:y",
+										x = username, y = bill.bill_id )
+			payment=match3.get()
+			if payment==None or payment.status == 0:
+				total_sum += bill.bill / float(numOfMembers)
+
+		return 1, username + ", your bills sums in " + total_sum + ""
+
+	def set_payment(self,admin_name, username,bill_id):
+		match1 = db.GqlQuery("SELECT * " "FROM UsersDB " "WHERE user_name =:x", x = admin_name)
+		admin=match1.get()
+		if admin.is_admin == False:
+			return 0, "you are not permitted to set payments"
+		else:
+			match2 = db.GqlQuery("SELECT * " "FROM UserPaymentsDB " "WHERE bill_id =:x, user_name =:y",
+								x = bill_id, y =username)
+			payment=match2.get()
+			if payment == None:
+				UserPaymentsDB(bill_id = bill_id, user_name = username,status = 2).put()
+			elif payment.status == 1 or payment.status == 0:
+				payment.status = 2
+				payment.put()
+			else:
+				payment.status = 0
+				payment.put()
+			self.add_to_archive(admin.user_groupID, bill_id)
+			return 1, "status updated"
+
+
+	def request_approval(self, username,bill_id):
+		match1 = db.GqlQuery("SELECT * " "FROM UserPaymentsDB " "WHERE bill_id =:x, user_name =:y",
+								x = bill_id, y =username)
+		payment=match1.get()
+		if payment == None:
+				UserPaymentsDB(bill_id = bill_id, user_name = username,status = 1).put()
+		else:
+			 payment.status = 1 
+			 payment.put()
+
+		return 1, "payment noted"
+
 
 	def get_shopping_list(self, groupID):
 		try:
