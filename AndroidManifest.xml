@@ -52,6 +52,18 @@
             android:name=".Bills"
             android:label="@string/title_activity_bills" >
         </activity>
+        <activity
+            android:name=".BillsCategory"
+            android:label="@string/title_activity_bills_category" >
+        </activity>
+        <activity
+            android:name=".BillsPayment"
+            android:label="@string/title_activity_bills_payment" >
+        </activity>
+        <activity
+            android:name=".BillsArchive"
+            android:label="@string/title_activity_bills_archive" >
+        </activity>
     </application>
 
 </manifest>

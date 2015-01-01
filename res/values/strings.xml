@@ -26,5 +26,11 @@
     <string name="SHOPPING">shopping</string>
     <string name="title_activity_shopping">Shopping</string>
     <string name="title_activity_bills">Bills</string>
+    <string name="GET_BILLS_TOTAL">BillsTotal</string>
+    <string name="BILL_CATEGORY">bill archive</string>
+    <string name="BILL_ARCHIVE">bill category</string>
+    <string name="title_activity_bills_category">BillsCategory</string>
+    <string name="title_activity_bills_payment">BillsPayment</string>
+    <string name="title_activity_bills_archive">BillsArchive</string>
 
 </resources>

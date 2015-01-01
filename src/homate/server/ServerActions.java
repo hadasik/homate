@@ -26,17 +26,19 @@ public class ServerActions
 	public static final String ACTION_GET_SHOPPING_LIST = "get_shopping_list";
 	public static final String ACTION_REMOVE_SHOPPING_ITEM = "remove_shopping_item";
 	public static final String ACTION_ADD_SHOPPING_ITEM = "add_shopping_item";
-	
-	
-	
+	public static final String ACTION_GET_BILLS_TOTAL = "get_bills_total";
 	public static final String ACTION_GET_GROUP = "get_group";
-
+	public static final String ACTION_ADD_BILLS = "add_bill";
+	public static final String ACTION_SHOW_BILLS = "show_bill";
+	public static final String ACTION_SHOW_BILLS_ARCHIVE = "show_archive";
 	/* Message Constants */
 	public static final String SERVER_RET_VAL = "return value";
 	public static final String SERVER_MSG = "msg";
 	public static final String SERVER_DATA = "data";
 	public static final String SERVER_DATA2 = "data2";
 	public static final String SERVER_ACTION = "action";
+
+
 
 
 	/* Variables */
@@ -378,6 +380,118 @@ public class ServerActions
 			info.put("groupID", group);
 			info.put("username", username);
 			info.put("items", items);
+		}
+		catch (JSONException e) 
+		{
+			Log.e("JSONObject","IOException:" +  e.toString());
+		} 
+		finally 
+		{
+			/** call intentService */
+			Intent msgIntent = new Intent(this.activity, HTTPIntentService.class);
+			msgIntent.putExtra(HTTPIntentService.PARAM_URL, URL);
+			msgIntent.putExtra(HTTPIntentService.PARAM_IN_MSG, info.toString());
+			msgIntent.putExtra(HTTPIntentService.PARAM_BR_ACTION_NAME, br_action_name);
+
+			this.activity.startService(msgIntent); 
+		
+		}
+		
+	}
+
+	public void get_bills_total(String username, String group) {
+		JSONObject info = new JSONObject();
+		/** Add data to JSON object */
+		try 
+		{
+			info.put(ACTION_COMMAND, ACTION_GET_BILLS_TOTAL);
+			info.put("groupID", group);
+			info.put("username", username);
+		}
+		catch (JSONException e) 
+		{
+			Log.e("JSONObject","IOException:" +  e.toString());
+		} 
+		finally 
+		{
+			/** call intentService */
+			Intent msgIntent = new Intent(this.activity, HTTPIntentService.class);
+			msgIntent.putExtra(HTTPIntentService.PARAM_URL, URL);
+			msgIntent.putExtra(HTTPIntentService.PARAM_IN_MSG, info.toString());
+			msgIntent.putExtra(HTTPIntentService.PARAM_BR_ACTION_NAME, br_action_name);
+
+			this.activity.startService(msgIntent); 
+		
+		}
+		
+	}
+
+	public void add_bill(String groupID, String username, String category,String total, String date) {
+		JSONObject info = new JSONObject();
+		/** Add data to JSON object */
+		try 
+		{
+			info.put(ACTION_COMMAND, ACTION_ADD_BILLS);
+			info.put("groupID", groupID);
+			info.put("username", username);
+			info.put("category", category);
+			info.put("bill", total);
+			info.put("date", date);
+		}
+		catch (JSONException e) 
+		{
+			Log.e("JSONObject","IOException:" +  e.toString());
+		} 
+		finally 
+		{
+			/** call intentService */
+			Intent msgIntent = new Intent(this.activity, HTTPIntentService.class);
+			msgIntent.putExtra(HTTPIntentService.PARAM_URL, URL);
+			msgIntent.putExtra(HTTPIntentService.PARAM_IN_MSG, info.toString());
+			msgIntent.putExtra(HTTPIntentService.PARAM_BR_ACTION_NAME, br_action_name);
+
+			this.activity.startService(msgIntent); 
+		
+		}
+		
+	}
+
+	public void show_bill(String groupID, String username, String category) {
+		JSONObject info = new JSONObject();
+		/** Add data to JSON object */
+		try 
+		{
+			info.put(ACTION_COMMAND, ACTION_SHOW_BILLS);
+			info.put("groupID", groupID);
+			info.put("username", username);
+			info.put("category", category);
+		}
+		catch (JSONException e) 
+		{
+			Log.e("JSONObject","IOException:" +  e.toString());
+		} 
+		finally 
+		{
+			/** call intentService */
+			Intent msgIntent = new Intent(this.activity, HTTPIntentService.class);
+			msgIntent.putExtra(HTTPIntentService.PARAM_URL, URL);
+			msgIntent.putExtra(HTTPIntentService.PARAM_IN_MSG, info.toString());
+			msgIntent.putExtra(HTTPIntentService.PARAM_BR_ACTION_NAME, br_action_name);
+
+			this.activity.startService(msgIntent); 
+		
+		}
+		
+	}
+
+	public void show_bill_archive(String groupID, String category) {
+		JSONObject info = new JSONObject();
+		/** Add data to JSON object */
+		try 
+		{
+			info.put(ACTION_COMMAND, ACTION_SHOW_BILLS_ARCHIVE);
+			info.put("groupID", groupID);
+			info.put("category", category);
 		}
 		catch (JSONException e) 
 		{
