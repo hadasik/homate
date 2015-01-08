@@ -24,13 +24,17 @@
     <string name="SERVER_GRP">Homate.server.ServerActions.ACTION_GET_GROUP</string>
     <string name="EDIT_GROUP_NAME">Homate.server.ServerActions.ACTION_EDIT_GROUP_NAME</string>
     <string name="SHOPPING">shopping</string>
+    <string name="CLEANING">cleaning</string>
     <string name="title_activity_shopping">Shopping</string>
     <string name="title_activity_bills">Bills</string>
     <string name="GET_BILLS_TOTAL">BillsTotal</string>
     <string name="BILL_CATEGORY">bill archive</string>
     <string name="BILL_ARCHIVE">bill category</string>
+    <string name="BILL_PAYMENT">bill payment</string>
     <string name="title_activity_bills_category">BillsCategory</string>
     <string name="title_activity_bills_payment">BillsPayment</string>
     <string name="title_activity_bills_archive">BillsArchive</string>
+    <string name="title_activity_cleaning">Cleaning</string>
+    <string name="title_activity_cleaning_prefs">CleaningPrefs</string>
 
 </resources>

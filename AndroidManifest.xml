@@ -64,6 +64,14 @@
             android:name=".BillsArchive"
             android:label="@string/title_activity_bills_archive" >
         </activity>
+        <activity
+            android:name=".Cleaning"
+            android:label="@string/title_activity_cleaning" >
+        </activity>
+        <activity
+            android:name=".CleaningPrefs"
+            android:label="@string/title_activity_cleaning_prefs" >
+        </activity>
     </application>
 
 </manifest>

@@ -3,7 +3,6 @@ package homate.config;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import homate.main.Loged;
 import homate.server.HTTPIntentService;
 import homate.server.ServerActions;
 import android.app.Activity;
@@ -18,9 +17,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -117,6 +114,18 @@ myactions = new ServerActions(this, getResources().getString(R.string.GET_BILLS_
 		Button b = (Button)view;
 	    String buttonText = b.getText().toString();
 		launcher.putExtra("category", buttonText);
+		launcher.putExtra("personalFlag", false);
+		startActivity(launcher);
+		finish();
+
+	}
+	
+	public void personalBills(View view) {
+		Intent launcher = new Intent(getBaseContext(), BillsCategory.class);
+		SharedPreferences settings = getSharedPreferences(getResources().getString(R.string.PREFS_FILE), 0);
+		String userName = settings.getString(getResources().getString(R.string.PREFS_USER),"username");
+		launcher.putExtra("category", "hello "+userName+",\nyour unpayed bills are:");
+		launcher.putExtra("personalFlag", true);
 		startActivity(launcher);
 		finish();
 

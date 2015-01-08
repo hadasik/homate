@@ -11,6 +11,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.graphics.Paint;
 import android.os.Bundle;
 import android.util.Log;
@@ -51,9 +52,12 @@ public class Shopping extends Activity implements ListView.OnItemClickListener{
 					try {
 						JSONObject obj = new JSONObject(response);
 						if (obj != null ) {
+							if(obj.getString(ServerActions.ACTION_COMMAND).equals(ServerActions.ACTION_ADD_SHOPPING_ITEM)){
+								if(obj.getString(ServerActions.SERVER_RET_VAL).equals("1")) getShoppingList();
+							}
+							
 							
 							if((obj.getString(ServerActions.ACTION_COMMAND).equals(ServerActions.ACTION_GET_SHOPPING_LIST))||
-							(obj.getString(ServerActions.ACTION_COMMAND).equals(ServerActions.ACTION_ADD_SHOPPING_ITEM))||
 							(obj.getString(ServerActions.ACTION_COMMAND).equals(ServerActions.ACTION_REMOVE_SHOPPING_ITEM))){
 								System.out.println(obj.toString());  //TODO debug-remove
 								
@@ -142,7 +146,7 @@ public class Shopping extends Activity implements ListView.OnItemClickListener{
 		String item = (((EditText)findViewById(R.id.editshoppingitem)).getText().toString());
 		
 			try {
-				myactions.add_shopping_item(username,group,item);
+				myactions.add_shopping_item(username,group," "+item+" ");
 			} catch (RuntimeException e) {
 				Log.e("LoginActivity","Failed Call Menu: "+e);
 			}
@@ -204,8 +208,16 @@ public class Shopping extends Activity implements ListView.OnItemClickListener{
 	public void onItemClick(AdapterView<?> ad, View v, int i, long j) {
 		System.out.println("the new size is "+(checks.length)+i);
 		checks[i] = !(checks[i]);
-		if(checks[i]) ((TextView) v).setPaintFlags(((TextView) v).getPaintFlags() | Paint.STRIKE_THRU_TEXT_FLAG);
-		else ((TextView) v).setPaintFlags(((TextView) v).getPaintFlags() & ~Paint.STRIKE_THRU_TEXT_FLAG);
+		Paint paint = new Paint();
+		paint.setStrokeWidth(2);
+		if(checks[i]) {
+			((TextView) v).setPaintFlags(((TextView) v).getPaintFlags()  |Paint.STRIKE_THRU_TEXT_FLAG);
+			((TextView) v).setTextColor(Color.BLACK);
+		}
+		else{
+			((TextView) v).setPaintFlags(((TextView) v).getPaintFlags() & ~Paint.STRIKE_THRU_TEXT_FLAG);
+			((TextView) v).setTextColor(Color.parseColor("#FFA07A"));
+		}
 	}
 	
 	

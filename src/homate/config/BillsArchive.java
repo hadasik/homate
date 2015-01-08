@@ -129,7 +129,6 @@ public class BillsArchive extends Activity implements ListView.OnItemClickListen
 	private void showBillArchiveByCategory() {
 		SharedPreferences settings = getSharedPreferences( getResources().getString(R.string.PREFS_FILE), 0);
 		String groupID = settings.getString( getResources().getString(R.string.PREFS_GRP),"0");
-		String username = settings.getString( getResources().getString(R.string.PREFS_USER),"usename");
 		
 		myactions.show_bill_archive(groupID,category);
 		

@@ -31,6 +31,15 @@ public class ServerActions
 	public static final String ACTION_ADD_BILLS = "add_bill";
 	public static final String ACTION_SHOW_BILLS = "show_bill";
 	public static final String ACTION_SHOW_BILLS_ARCHIVE = "show_archive";
+	public static final String ACTION_REMOVE_BILL = "remove_payment";
+	public static final String ACTION_SHOW_USER_BILLS = "show_user_bills";
+	public static final String ACTION_REQUEST_BILL_APPROVAL = "request_approval";
+	public static final String ACTION_SET_PAYMENT = "set_payment";
+	public static final String ACTION_PAYMENT_DETAILS = "get_payment_details";
+	public static final String ACTION_SHOW_PERSONAL_BILLS = "get_personal_bills";
+	public static final String ACTION_GET_CLEANING_ORDER = "get_cleaning_order";
+	public static final String ACTION_SET_CLEANING_PREFS = "set_cleaning_prefs";
+	
 	/* Message Constants */
 	public static final String SERVER_RET_VAL = "return value";
 	public static final String SERVER_MSG = "msg";
@@ -510,6 +519,203 @@ public class ServerActions
 		}
 		
 	}
+
+	public void removeBill(String userName, String billID, String groupID) {
+		JSONObject info = new JSONObject();
+		/** Add data to JSON object */
+		try 
+		{
+			info.put(ACTION_COMMAND, ACTION_REMOVE_BILL);
+			info.put("username", userName);
+			info.put("bill_id", billID);
+			info.put("groupID", groupID);
+		}
+		catch (JSONException e) 
+		{
+			Log.e("JSONObject","IOException:" +  e.toString());
+		} 
+		finally 
+		{
+			/** call intentService */
+			Intent msgIntent = new Intent(this.activity, HTTPIntentService.class);
+			msgIntent.putExtra(HTTPIntentService.PARAM_URL, URL);
+			msgIntent.putExtra(HTTPIntentService.PARAM_IN_MSG, info.toString());
+			msgIntent.putExtra(HTTPIntentService.PARAM_BR_ACTION_NAME, br_action_name);
+
+			this.activity.startService(msgIntent); 
+		
+		}
+		
+	}
+	
+	public void request_approval(String userName, String billID) {
+		JSONObject info = new JSONObject();
+		/** Add data to JSON object */
+		try 
+		{
+			info.put(ACTION_COMMAND, ACTION_REQUEST_BILL_APPROVAL);
+			info.put("username", userName);
+			info.put("bill_id", billID);
+		}
+		catch (JSONException e) 
+		{
+			Log.e("JSONObject","IOException:" +  e.toString());
+		} 
+		finally 
+		{
+			/** call intentService */
+			Intent msgIntent = new Intent(this.activity, HTTPIntentService.class);
+			msgIntent.putExtra(HTTPIntentService.PARAM_URL, URL);
+			msgIntent.putExtra(HTTPIntentService.PARAM_IN_MSG, info.toString());
+			msgIntent.putExtra(HTTPIntentService.PARAM_BR_ACTION_NAME, br_action_name);
+
+			this.activity.startService(msgIntent); 
+		
+		}
+		
+	}
+	
+	
+	public void get_payment_details(String billID) {
+		JSONObject info = new JSONObject();
+		/** Add data to JSON object */
+		try
+		{
+			info.put(ACTION_COMMAND, ACTION_PAYMENT_DETAILS);
+			info.put("bill_id", billID);
+		}
+		catch (JSONException e) 
+		{
+			Log.e("JSONObject","IOException:" +  e.toString());
+		} 
+		finally 
+		{
+			/** call intentService */
+			Intent msgIntent = new Intent(this.activity, HTTPIntentService.class);
+			msgIntent.putExtra(HTTPIntentService.PARAM_URL, URL);
+			msgIntent.putExtra(HTTPIntentService.PARAM_IN_MSG, info.toString());
+			msgIntent.putExtra(HTTPIntentService.PARAM_BR_ACTION_NAME, br_action_name);
+
+			this.activity.startService(msgIntent); 
+		
+		}
+		
+	}
+	public void set_payment(String adminName,String userName, String billID,int status) {
+		JSONObject info = new JSONObject();
+		/** Add data to JSON object */
+		try
+		{
+			info.put(ACTION_COMMAND, ACTION_SET_PAYMENT);
+			info.put("admin_name", adminName);
+			info.put("username", userName);
+			info.put("bill_id", billID);
+			info.put("status", status);
+		}
+		catch (JSONException e) 
+		{
+			Log.e("JSONObject","IOException:" +  e.toString());
+		} 
+		finally 
+		{
+			/** call intentService */
+			Intent msgIntent = new Intent(this.activity, HTTPIntentService.class);
+			msgIntent.putExtra(HTTPIntentService.PARAM_URL, URL);
+			msgIntent.putExtra(HTTPIntentService.PARAM_IN_MSG, info.toString());
+			msgIntent.putExtra(HTTPIntentService.PARAM_BR_ACTION_NAME, br_action_name);
+
+			this.activity.startService(msgIntent); 
+		
+		}
+		
+	}
+
+	public void show_personal_bill(String username,String group) {
+		JSONObject info = new JSONObject();
+		/** Add data to JSON object */
+		try
+		{
+			info.put(ACTION_COMMAND, ACTION_SHOW_PERSONAL_BILLS);
+			info.put("username", username);
+			info.put("groupID", group);
+		}
+		catch (JSONException e) 
+		{
+			Log.e("JSONObject","IOException:" +  e.toString());
+		} 
+		finally 
+		{
+			/** call intentService */
+			Intent msgIntent = new Intent(this.activity, HTTPIntentService.class);
+			msgIntent.putExtra(HTTPIntentService.PARAM_URL, URL);
+			msgIntent.putExtra(HTTPIntentService.PARAM_IN_MSG, info.toString());
+			msgIntent.putExtra(HTTPIntentService.PARAM_BR_ACTION_NAME, br_action_name);
+
+			this.activity.startService(msgIntent); 
+		
+		}
+		
+	}
+
+	public void getCleaningOrder(String group) {
+		
+		JSONObject info = new JSONObject();
+		/** Add data to JSON object */
+		try
+		{
+			info.put(ACTION_COMMAND, ACTION_GET_CLEANING_ORDER);
+			info.put("groupID", group);
+		}
+		catch (JSONException e) 
+		{
+			Log.e("JSONObject","IOException:" +  e.toString());
+		} 
+		finally 
+		{
+			/** call intentService */
+			Intent msgIntent = new Intent(this.activity, HTTPIntentService.class);
+			msgIntent.putExtra(HTTPIntentService.PARAM_URL, URL);
+			msgIntent.putExtra(HTTPIntentService.PARAM_IN_MSG, info.toString());
+			msgIntent.putExtra(HTTPIntentService.PARAM_BR_ACTION_NAME, br_action_name);
+
+			this.activity.startService(msgIntent); 
+		
+		}
+		
+		
+	}
+
+	public void set_cleaning_prefs(String userName, String group, String days, String strorder) {
+		JSONObject info = new JSONObject();
+		/** Add data to JSON object */
+		try
+		{
+			info.put(ACTION_COMMAND, ACTION_SET_CLEANING_PREFS);
+			info.put("groupID", group);
+			info.put("username", userName);
+			info.put("days", days);
+			info.put("order", strorder);
+			
+		}
+		catch (JSONException e) 
+		{
+			Log.e("JSONObject","IOException:" +  e.toString());
+		} 
+		finally 
+		{
+			/** call intentService */
+			Intent msgIntent = new Intent(this.activity, HTTPIntentService.class);
+			msgIntent.putExtra(HTTPIntentService.PARAM_URL, URL);
+			msgIntent.putExtra(HTTPIntentService.PARAM_IN_MSG, info.toString());
+			msgIntent.putExtra(HTTPIntentService.PARAM_BR_ACTION_NAME, br_action_name);
+
+			this.activity.startService(msgIntent); 
+		
+		}
+		
+	}
+	
+	
 	
 	
 }

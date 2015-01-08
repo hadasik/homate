@@ -3,7 +3,6 @@ package homate.config;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import homate.main.Loged;
 import homate.server.HTTPIntentService;
 import homate.server.ServerActions;
 import android.app.Activity;
@@ -12,10 +11,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -30,12 +27,15 @@ import android.widget.Toast;
 
 public class BillsCategory extends Activity implements ListView.OnItemClickListener {
 	
+	boolean personalFlag;
 	String category;
 	private ServerActions myactions;
 	private IntentFilter filter;
 	private BroadcastReceiver receiver;
 	private ListView list;
 	private String[] bills = {""};
+	private String[] billIDs = {""};
+	private String[][] splitBills;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -62,11 +62,37 @@ public class BillsCategory extends Activity implements ListView.OnItemClickListe
 										Toast.LENGTH_LONG).show();
 								
 								if(obj.getString(ServerActions.SERVER_RET_VAL).equals("1")){
-								showBillByCategory();
+									if(personalFlag){
+										showBillByPerson();
+									}else {
+										showBillByCategory();
+									}
 								}
 							}
 							
 							if(obj.getString(ServerActions.ACTION_COMMAND).equals(ServerActions.ACTION_SHOW_BILLS)){
+								
+								parseShowBills(obj.getString(ServerActions.SERVER_MSG));
+								ArrayAdapter<String> adapter =new ArrayAdapter<String>(context,R.layout.simple_list_item_homate,bills);
+								list.setAdapter(adapter);
+								
+							}
+							
+							if(obj.getString(ServerActions.ACTION_COMMAND).equals(ServerActions.ACTION_REMOVE_BILL)){
+								
+								Toast.makeText(context,obj.getString(ServerActions.SERVER_MSG),
+										Toast.LENGTH_LONG).show();
+								
+								if(obj.getString(ServerActions.SERVER_RET_VAL).equals("1")) {
+									if(personalFlag){
+										showBillByPerson();
+									}else {
+										showBillByCategory();
+									}
+								}
+								
+							}
+							if(obj.getString(ServerActions.ACTION_COMMAND).equals(ServerActions.ACTION_SHOW_PERSONAL_BILLS)){
 								
 								parseShowBills(obj.getString(ServerActions.SERVER_MSG));
 								ArrayAdapter<String> adapter =new ArrayAdapter<String>(context,R.layout.simple_list_item_homate,bills);
@@ -113,8 +139,12 @@ public class BillsCategory extends Activity implements ListView.OnItemClickListe
 	private void parseShowBills(String msg) {
 		String[] wholeBills = msg.split("#");
 		bills = new String[wholeBills.length];
+		billIDs =  new String[wholeBills.length];
+		splitBills = new String[wholeBills.length][];
 		for(int i=0; i <wholeBills.length; i++){
-			bills[i] = ((wholeBills[i]).split("@"))[0];
+			splitBills[i] = (wholeBills[i]).split("@");
+			bills[i] = splitBills[i][0];
+			if(splitBills[i].length>1) billIDs[i] =  splitBills[i][1];
 		}
 		
 	}
@@ -124,15 +154,26 @@ public class BillsCategory extends Activity implements ListView.OnItemClickListe
 	public void onStart() {
 		super.onStart();
 		category = getIntent().getExtras().getString("category");
+		personalFlag = getIntent().getExtras().getBoolean("personalFlag");
 		View v = (TextView)findViewById(R.id.BCTEXT);
 		((TextView) v).setText(category);
+		if(personalFlag){
+		findViewById(R.id.BCDATEedit).setVisibility(View.GONE);
+		findViewById(R.id.BCTOTALedit).setVisibility(View.GONE);
+		findViewById(R.id.addBillButton).setVisibility(View.GONE);
+		findViewById(R.id.billbutton2).setVisibility(View.GONE);
+		}
 	}
 	
 	@Override
 	public void onResume() {
 		super.onResume();
 		registerReceiver(receiver, filter);	
-		showBillByCategory();
+		if(personalFlag){
+			showBillByPerson();
+		}else {
+			showBillByCategory();
+		}
 		
 	}
 	
@@ -142,6 +183,13 @@ public class BillsCategory extends Activity implements ListView.OnItemClickListe
 		String username = settings.getString( getResources().getString(R.string.PREFS_USER),"usename");
 		
 		myactions.show_bill(groupID, username,category);
+		
+	}
+	private void showBillByPerson() {
+		SharedPreferences settings = getSharedPreferences( getResources().getString(R.string.PREFS_FILE), 0);
+		String username = settings.getString( getResources().getString(R.string.PREFS_USER),"usename");
+		String group = settings.getString( getResources().getString(R.string.PREFS_GRP),"0");
+		myactions.show_personal_bill(username,group);
 		
 	}
 
@@ -174,11 +222,43 @@ public class BillsCategory extends Activity implements ListView.OnItemClickListe
 	}
 	
 	
-	public void onItemClick(AdapterView<?> ad, View v, int i, long j) {
+	public void onItemClick(AdapterView<?> ad, View v, final int i, long j) {
+		 PopupMenu popup = new PopupMenu(this, v);
+		 MenuInflater inflater = popup.getMenuInflater();
+		 inflater.inflate(R.menu.bills_actions, popup.getMenu());
+		 
+		 
+		  //registering popup with OnMenuItemClickListener  
+         popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {  
+          public boolean onMenuItemClick(MenuItem item) {  
+        	  SharedPreferences settings = getSharedPreferences( getResources().getString(R.string.PREFS_FILE), 0);
+      		  String userName = settings.getString( getResources().getString(R.string.PREFS_USER),"username");
+      		  String groupID = settings.getString( getResources().getString(R.string.PREFS_GRP),"0");
+      	    switch (item.getItemId()) {
+      	        case R.id.menu_bill_details:
+      	        	
+      	        	billDetail(i);
+      	            return true;
+      	        case R.id.menu_bill_remove:
+      	        	myactions.removeBill(userName,billIDs[i],groupID);
+      	            return true;
+      	        default:
+      	            return false;
+      	    }  
+          }
+
 		
+         });  
+		 
+		 
+		 popup.show();
 	}
 	
 	
-	
-	
+	private void billDetail(int i) {
+		Intent launcher = new Intent(getBaseContext(), BillsPayment.class);
+		launcher.putExtra("status", splitBills[i]);
+		startActivity(launcher);
+		
+	}  
 }

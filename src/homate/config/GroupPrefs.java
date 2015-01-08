@@ -3,12 +3,10 @@ package homate.config;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import android.view.ViewGroup;
 import homate.main.Loged;
 import homate.server.HTTPIntentService;
 import homate.server.ServerActions;
 import android.app.Activity;
-import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;

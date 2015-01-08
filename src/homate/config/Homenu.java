@@ -125,6 +125,16 @@ public class Homenu extends Activity {
 		finish();
 		
 	}
+	
+	public void cleaning(View view) 
+	{
+		Intent intent = new Intent(getBaseContext(),Cleaning.class);
+		startActivity(intent);
+		
+		
+		finish();
+		
+	}
 
 
 }
