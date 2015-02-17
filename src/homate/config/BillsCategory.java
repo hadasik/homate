@@ -5,6 +5,7 @@ import org.json.JSONObject;
 
 import homate.server.HTTPIntentService;
 import homate.server.ServerActions;
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -15,8 +16,11 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.Window;
+import android.view.View.OnTouchListener;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
@@ -25,7 +29,7 @@ import android.widget.PopupMenu;
 import android.widget.TextView;
 import android.widget.Toast;
 
-public class BillsCategory extends Activity implements ListView.OnItemClickListener {
+public class BillsCategory extends Activity implements ListView.OnItemClickListener, OnTouchListener {
 	
 	boolean personalFlag;
 	String category;
@@ -56,7 +60,7 @@ public class BillsCategory extends Activity implements ListView.OnItemClickListe
 							
 							if(obj.getString(ServerActions.ACTION_COMMAND).equals(ServerActions.ACTION_ADD_BILLS)){
 								//dismiss progress dialog
-								System.out.println(obj.toString());  //TODO debug-remove
+								System.out.println(obj.toString());  
 
 								Toast.makeText(context,obj.getString(ServerActions.SERVER_MSG),
 										Toast.LENGTH_LONG).show();
@@ -124,6 +128,8 @@ public class BillsCategory extends Activity implements ListView.OnItemClickListe
 		ArrayAdapter<String> adapter =new ArrayAdapter<String>(this,R.layout.simple_list_item_homate,bills);
 		list.setAdapter(adapter);
 		list.setOnItemClickListener(this);
+		
+		findViewById(R.id.billsCategoryLayout).setOnTouchListener(this);
 	}
 
 	@Override
@@ -208,12 +214,37 @@ public class BillsCategory extends Activity implements ListView.OnItemClickListe
 		SharedPreferences settings = getSharedPreferences( getResources().getString(R.string.PREFS_FILE), 0);
 		String groupID = settings.getString( getResources().getString(R.string.PREFS_GRP),"0");
 		String username = settings.getString( getResources().getString(R.string.PREFS_USER),"usename");
+		if (isDate(date)) myactions.add_bill(groupID, username,category,total,date);
+		else Toast.makeText(this,"please enter date in the correct format (dd.mm.yyyy)", Toast.LENGTH_LONG).show();
+		((EditText)findViewById(R.id.BCTOTALedit)).getText().clear();
+		((EditText)findViewById(R.id.BCDATEedit)).getText().clear();
 		
-		myactions.add_bill(groupID, username,category,total,date);
+		InputMethodManager imm = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
+		imm.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), 0);
+		
+		
 	}
 	
 	
 	
+	private boolean isDate(String date) {
+		boolean ans = true;
+		if (date.length() != 10) ans = false;
+		if (date.charAt(2) != '.' || date.charAt(5) != '.') ans = false;
+		
+		System.out.println("string lenght : "+date.length());
+		System.out.println("format undotted : "+(date.charAt(2) != '.' || date.charAt(5) != '.'));
+		 try { 
+			 Integer.parseInt(date.substring(0,2)); 
+		     Integer.parseInt(date.substring(3,5)); 
+		     Integer.parseInt(date.substring(6,10)); 
+		    } catch(NumberFormatException e) { 
+		        ans =  false; 
+		    }
+		
+		return ans;
+	}
+
 	public void showArchive(View view) 
 	{
 		Intent launcher = new Intent(getBaseContext(), BillsArchive.class);
@@ -261,4 +292,13 @@ public class BillsCategory extends Activity implements ListView.OnItemClickListe
 		startActivity(launcher);
 		
 	}  
+	
+	@SuppressLint("ClickableViewAccessibility")
+	public boolean onTouch(View v, MotionEvent event) {
+		InputMethodManager imm = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
+		imm.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), 0);
+		return false;
+	}
+	
+	
 }

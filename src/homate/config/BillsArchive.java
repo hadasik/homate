@@ -2,7 +2,6 @@ package homate.config;
 
 import org.json.JSONException;
 import org.json.JSONObject;
-
 import homate.server.HTTPIntentService;
 import homate.server.ServerActions;
 import android.app.Activity;

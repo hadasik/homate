@@ -36,5 +36,6 @@
     <string name="title_activity_bills_archive">BillsArchive</string>
     <string name="title_activity_cleaning">Cleaning</string>
     <string name="title_activity_cleaning_prefs">CleaningPrefs</string>
+    <string name="title_activity_ratings">Ratings</string>
 
 </resources>

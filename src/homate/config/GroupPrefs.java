@@ -6,6 +6,7 @@ import org.json.JSONObject;
 import homate.main.Loged;
 import homate.server.HTTPIntentService;
 import homate.server.ServerActions;
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -18,8 +19,11 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.Window;
+import android.view.View.OnTouchListener;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
@@ -28,7 +32,7 @@ import android.widget.PopupMenu;
 import android.widget.TextView;
 import android.widget.Toast;
 
-public class GroupPrefs extends Activity implements ListView.OnItemClickListener {
+public class GroupPrefs extends Activity implements ListView.OnItemClickListener, OnTouchListener {
 
 	
 	private ServerActions myactions;
@@ -59,7 +63,7 @@ public class GroupPrefs extends Activity implements ListView.OnItemClickListener
 							
 							if(obj.getString(ServerActions.ACTION_COMMAND).equals(ServerActions.ACTION_EDIT_GROUP_NAME)){
 								//dismiss progress dialog
-								System.out.println(obj.toString());  //TODO debug-remove
+								System.out.println(obj.toString()); 
 
 								if (obj.getString(ServerActions.SERVER_RET_VAL).equals("1")) {
 									/** edit group name verified */
@@ -73,7 +77,7 @@ public class GroupPrefs extends Activity implements ListView.OnItemClickListener
 							}
 							
 							if(obj.getString(ServerActions.ACTION_COMMAND).equals(ServerActions.ACTION_ADD_MEMBER)){
-								System.out.println(obj.toString());  //TODO debug-remove
+								System.out.println(obj.toString());  
 
 								Toast.makeText(context,obj.getString(ServerActions.SERVER_MSG),
 											Toast.LENGTH_LONG).show();
@@ -84,7 +88,7 @@ public class GroupPrefs extends Activity implements ListView.OnItemClickListener
 							
 							if(obj.getString(ServerActions.ACTION_COMMAND).equals(ServerActions.ACTION_LEAVE_GROUP)){
 								//dismiss progress dialog
-								System.out.println(obj.toString());  //TODO debug-remove
+								System.out.println(obj.toString());  
 
 								Toast.makeText(context,obj.getString(ServerActions.SERVER_MSG),
 										Toast.LENGTH_LONG).show();
@@ -100,7 +104,7 @@ public class GroupPrefs extends Activity implements ListView.OnItemClickListener
 							}
 							
 							if(obj.getString(ServerActions.ACTION_COMMAND).equals(ServerActions.ACTION_GET_MEMBERS)){
-								System.out.println(obj.toString());  //TODO debug-remove
+								System.out.println(obj.toString());  
 								
 								members = obj.getString(ServerActions.SERVER_MSG).split("#");
 								ArrayAdapter<String> adapter =new ArrayAdapter<String>(context,R.layout.simple_list_item_homate,members);
@@ -108,7 +112,7 @@ public class GroupPrefs extends Activity implements ListView.OnItemClickListener
 							}
 							
 							if(obj.getString(ServerActions.ACTION_COMMAND).equals(ServerActions.ACTION_REMOVE_MEMBER)){
-								System.out.println(obj.toString());  //TODO debug-remove
+								System.out.println(obj.toString());  
 
 								Toast.makeText(context,obj.getString(ServerActions.SERVER_MSG),
 										Toast.LENGTH_LONG).show();
@@ -126,7 +130,7 @@ public class GroupPrefs extends Activity implements ListView.OnItemClickListener
 							}
 							
 							if(obj.getString(ServerActions.ACTION_COMMAND).equals(ServerActions.ACTION_SET_ADMIN)){
-								System.out.println(obj.toString());  //TODO debug-remove
+								System.out.println(obj.toString()); 
 
 								Toast.makeText(context,obj.getString(ServerActions.SERVER_MSG),
 										Toast.LENGTH_LONG).show();
@@ -161,6 +165,9 @@ public class GroupPrefs extends Activity implements ListView.OnItemClickListener
 		list.setAdapter(adapter);
 		list.setOnItemClickListener(this);
 		
+		findViewById(R.id.prefsLayout).setOnTouchListener(this);
+		
+		
 	}
 
 	@Override
@@ -186,6 +193,10 @@ public class GroupPrefs extends Activity implements ListView.OnItemClickListener
 				Log.e("LoginActivity","Failed Call Menu: "+e);
 			}
 		
+			((EditText)findViewById(R.id.editGroupNameText)).getText().clear();
+			
+			InputMethodManager imm = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
+			imm.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), 0);
 		
 	}
 	
@@ -223,6 +234,12 @@ public class GroupPrefs extends Activity implements ListView.OnItemClickListener
 			} catch (RuntimeException e) {
 				Log.e("LoginActivity","Failed Call Menu: "+e);
 			}
+			
+			((EditText)findViewById(R.id.editAddMemberText)).getText().clear();
+			
+			InputMethodManager imm = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
+			imm.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), 0);
+			
 	}
 	
 	
@@ -286,7 +303,12 @@ public class GroupPrefs extends Activity implements ListView.OnItemClickListener
 	}
 
 
-	
+	@SuppressLint("ClickableViewAccessibility")
+	public boolean onTouch(View v, MotionEvent event) {
+		InputMethodManager imm = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
+		imm.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), 0);
+		return false;
+	}
 }
 
 

@@ -2,14 +2,13 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="homate.config"
     android:versionCode="1"
-    android:versionName="1.0" >
+    android:versionName="1.0" 
+    android:windowSoftInputMode="stateHidden">
 
     <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="com.android.launcher.permission.INSTALL_SHORTCUT" />
-    <uses-permission android:name="com.android.launcher.permission.UNINSTALL_SHORTCUT" />
 
     <uses-sdk
-        android:minSdkVersion="17"
+        android:minSdkVersion="14"
         android:targetSdkVersion="21" />
 
     <application
@@ -31,10 +30,6 @@
         <activity
             android:name="homate.main.Loged"
             android:label="@string/title_activity_loged" >
-        </activity>
-        <activity
-            android:name=".HomateMenu"
-            android:label="@string/title_activity_homate_menu" >
         </activity>
         <activity
             android:name=".GroupPrefs"

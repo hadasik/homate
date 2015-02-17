@@ -5,6 +5,7 @@ import org.json.JSONObject;
 
 import homate.server.HTTPIntentService;
 import homate.server.ServerActions;
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -17,7 +18,10 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
+import android.view.View.OnTouchListener;
+import android.view.inputmethod.InputMethodManager;
 import android.view.Window;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -26,7 +30,7 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-public class Shopping extends Activity implements ListView.OnItemClickListener{
+public class Shopping extends Activity implements ListView.OnItemClickListener, OnTouchListener{
 	
 	private ServerActions myactions;
 	private IntentFilter filter;
@@ -52,13 +56,15 @@ public class Shopping extends Activity implements ListView.OnItemClickListener{
 					try {
 						JSONObject obj = new JSONObject(response);
 						if (obj != null ) {
-							if(obj.getString(ServerActions.ACTION_COMMAND).equals(ServerActions.ACTION_ADD_SHOPPING_ITEM)){
+							if((obj.getString(ServerActions.ACTION_COMMAND).equals(ServerActions.ACTION_ADD_SHOPPING_ITEM))
+									||(obj.getString(ServerActions.ACTION_COMMAND).equals(ServerActions.ACTION_REMOVE_SHOPPING_ITEM)))
+							{
 								if(obj.getString(ServerActions.SERVER_RET_VAL).equals("1")) getShoppingList();
+								getShoppingList();
 							}
 							
 							
-							if((obj.getString(ServerActions.ACTION_COMMAND).equals(ServerActions.ACTION_GET_SHOPPING_LIST))||
-							(obj.getString(ServerActions.ACTION_COMMAND).equals(ServerActions.ACTION_REMOVE_SHOPPING_ITEM))){
+							if(obj.getString(ServerActions.ACTION_COMMAND).equals(ServerActions.ACTION_GET_SHOPPING_LIST)){
 								System.out.println(obj.toString());  //TODO debug-remove
 								
 								if(obj.getString(ServerActions.SERVER_RET_VAL).equals("1")){
@@ -99,6 +105,8 @@ public class Shopping extends Activity implements ListView.OnItemClickListener{
 		list.setOnItemClickListener(this);
 		
 		getShoppingList();
+		
+		findViewById(R.id.shoppingLayout).setOnTouchListener(this);
 		
 	}
 
@@ -150,6 +158,11 @@ public class Shopping extends Activity implements ListView.OnItemClickListener{
 			} catch (RuntimeException e) {
 				Log.e("LoginActivity","Failed Call Menu: "+e);
 			}
+			
+			((EditText)findViewById(R.id.editshoppingitem)).getText().clear();
+			
+			InputMethodManager imm = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
+			imm.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), 0);
 		
 	}
 
@@ -218,6 +231,14 @@ public class Shopping extends Activity implements ListView.OnItemClickListener{
 			((TextView) v).setPaintFlags(((TextView) v).getPaintFlags() & ~Paint.STRIKE_THRU_TEXT_FLAG);
 			((TextView) v).setTextColor(Color.parseColor("#FFA07A"));
 		}
+	}
+
+	@SuppressLint("ClickableViewAccessibility")
+	@Override
+	public boolean onTouch(View v, MotionEvent event) {
+		InputMethodManager imm = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
+		imm.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), 0);
+		return false;
 	}
 	
 	

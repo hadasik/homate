@@ -2,9 +2,7 @@ from google.appengine.ext import db
 from google.appengine.api import datastore_errors
 from google.appengine.ext.webapp.util import run_wsgi_app
 from datetime import datetime
-import math
-import time
-import ast, json, pdb, webapp2, operator	
+import math, time, ast, json, pdb, webapp2, operator	
 
 class UsersDB(db.Model):
 	user_name = db.StringProperty(required=True)
@@ -22,7 +20,7 @@ class PaymentsDB(db.Model):
 	group_id = db.IntegerProperty(required=True)
 	category = db.StringProperty(choices = ('water', 'gas', 'electricity',
 		'groceries', 'internet', 'TV', 'municipals', 'building fee','other'))
-	bill = db.IntegerProperty(required=True)
+	bill = db.FloatProperty(required=True)
 	date = db.StringProperty(required=True)
 	is_payed = db.BooleanProperty(required=True, default = False)
 
@@ -212,10 +210,54 @@ class MainPage(webapp2.RequestHandler):
 			msg = dba.set_cleaning_prefs(groupID, username,days, order)
 			result = {'action' : action,'return value' : msg[0], 'msg':msg[1]}
 
+		elif 'get_routine_day' in action:
+			groupID = o['groupID']
+			msg = dba.get_routine_day(groupID)
+			result = {'action' : action,'return value' : msg[0], 'msg':msg[1]}
+
 		self.response.headers['Content-Type'] = 'application/JSON'
 		self.response.out.write(json.dumps(result))
 
 class dataBaseClass:
+
+
+	def removeQuery(self,userName,groupID):
+		match1 = db.GqlQuery("SELECT * " "FROM CleaningOrderDB " "WHERE username =:x ",x = userName)
+		details=match1.get()
+		if details != None:
+			orderOfLeaver = details.order
+			details.delete()
+			match2 = db.GqlQuery("SELECT * " "FROM CleaningOrderDB " "WHERE groupID =:x ",x = int(groupID))
+			members=match2.fetch(100)
+			for i in range (0, len(members)):
+				if members[i].order>orderOfLeaver:
+					members[i].order = members[i].order - 1
+					members[i].put()
+
+		match3 = db.GqlQuery("SELECT * " "FROM UserPaymentsDB " "WHERE user_name =:x ",x = userName)
+		payments = match3.fetch(1000)
+		for i in range (0, len(payments)):
+			bill_id = payments[i].bill_id
+			payment.status = 2
+			payment.put()
+
+			self.add_to_archive(groupID, bill_id)
+	
+		return 
+			
+
+	def get_routine_day(self, groupID):
+		ans = ""
+		match2 = db.GqlQuery("SELECT * " "FROM CleaningGroupDB " "WHERE groupID =:x ",x = int(groupID))
+		details=match2.get()
+		if details == None:
+			return 0,"day 0 out of 0"
+		else:
+			today = math.ceil(time.time() / (60*60*24))
+			start_of_routine = details.start_time
+			days = details.days
+			curr = (math.ceil((today - start_of_routine)%days)) + 1
+			return 1,"day "+str(int(curr)) +" out of "+str(days)
 
 	def get_cleaning_order (self, groupID):
 		ans = ""
@@ -232,18 +274,14 @@ class dataBaseClass:
 			days = details.days
 			curr = (math.floor((today - start_of_routine)/days))%numOfMembers
 			i= 0
-			tmp = True
-			while (tmp and i < numOfMembers):
+			while (i < numOfMembers):
 				match1 = db.GqlQuery("SELECT * " "FROM CleaningOrderDB " "WHERE groupID =:1 AND order=:2",
 									int(groupID), int(((i+curr)%numOfMembers)))
 				member=match1.get()
-				if member == None :
-					tmp = False
-				else:	
-
+				i = i + 1
+				if member != None :
 					ans = ans + member.username + "#"
-					i =+1
-		return 1,ans
+			return 1,ans
 
 	def set_cleaning_prefs(self, groupID, username,days, order):
 		order = order.split("#")
@@ -261,15 +299,17 @@ class dataBaseClass:
 				details.days = int(days)
 				details.start_time = int(t)
 				details.put()
+				match3 = db.GqlQuery("SELECT * " "FROM CleaningOrderDB " "WHERE groupID =:x", x =int(groupID))
+				oldorder = match3.fetch(100)
+
+				for i in range (0, len(oldorder)):
+					oldorder[i].delete()
+
 				for i in range (0, len(order)-1):
 					match2 = db.GqlQuery("SELECT * " "FROM CleaningOrderDB " "WHERE groupID =:1 AND username =:2",
 											int(groupID), order[i])
 					details=match2.get()
-					if details == None:
-						CleaningOrderDB(groupID = int(groupID), username = order[i], order = i).put()
-					else:
-						details.order = i
-						details.put()
+					CleaningOrderDB(groupID = int(groupID), username = order[i], order = i).put()
 			return 1, "set cleaning preferences successfully"
 		else:
 			return 0, "you are not permited to set preferences"
@@ -282,8 +322,8 @@ class dataBaseClass:
 		details=match1.get()
 		match2 = db.GqlQuery("SELECT * " "FROM UsersDB " "WHERE user_groupID =:x", x = details.group_id)
 		members=match2.fetch(1000)
-		
-		ans = ans + "for date: " + details.date + " total: " + str(details.bill) + "@"
+		bill = "%.2f" %details.bill
+		ans = ans + "for date: " + details.date + " total: " + str(bill) + "@"
 		ans = ans +str(bill_id) +"@"
 		for m in range (0,len(members)):
 			match3 = db.GqlQuery("SELECT * " "FROM UserPaymentsDB " "WHERE user_name =:1 AND bill_id =:2",
@@ -310,7 +350,8 @@ class dataBaseClass:
 										username, int(curr_bill) )
 			curr=match3.get() #curr bill and user details
 			if curr ==None or curr.status == 0:
-				ans = ans + bills[i].category+" - for date: " + bills[i].date + " total: " + str(bills[i].bill) + "@"
+				bill = "%.2f" %bills[i].bill
+				ans = ans + bills[i].category+" - for date: " + bills[i].date + " total: " + str(bill) + "@"
 				ans = ans +str(bills[i].bill_id) +"@"
 				for member in members:
 					match4 = db.GqlQuery("SELECT * " "FROM UserPaymentsDB " "WHERE user_name =:1 AND bill_id =:2",
@@ -360,7 +401,7 @@ class dataBaseClass:
 		members1=match1.fetch(100)
 		match2 = db.GqlQuery("SELECT * " "FROM UserPaymentsDB " "WHERE bill_id =:x ",x=int(bill_id))
 		members2=match2.fetch(100)
-		if len(members1)==len(members2):
+		if len(members1)<=len(members2):
 			
 			for m in range (0,len(members2)):
 				if members2[m].status != 2:
@@ -378,7 +419,8 @@ class dataBaseClass:
 							 int(group_id), category, True)
 		bills = match.fetch(1000)
 		for bill in bills:
-			ans += "for date: " + str(bill.date) + " total: " + str(bill.bill) + "#"
+			bill_sum = "%.2f" %bill.bill
+			ans += "for date: " + str(bill.date) + " total: " + str(bill_sum) + "#"
 		return 1,ans
 
 	def add_bill(self, group_id, user_name,category, bill, date):
@@ -390,7 +432,7 @@ class dataBaseClass:
 			payments = match2.fetch(1000)
 			bill_count = len(payments) + 1
 			PaymentsDB(bill_id = bill_count, group_id = int(group_id), 
-						category = category, date =date, bill = int(bill)).put()
+						category = category, date =date, bill = float(bill)).put()
 			return 1,"bill was added successfuly"
 		else:
 			return 0, "you are not permitted to add new bill"
@@ -405,7 +447,8 @@ class dataBaseClass:
 		members=match2.fetch(1000)
 
 		for i in range (0,len(bills)):
-			ans = ans + "for date: " + bills[i].date + " total: " + str(bills[i].bill) + "@"
+			bill_sum = "%.2f" %bills[i].bill
+			ans = ans + "for date: " + bills[i].date + " total: " + str(bill_sum) + "@"
 			ans = ans +str(bills[i].bill_id) +"@"
 			for member in members:
 				match3 = db.GqlQuery("SELECT * " "FROM UserPaymentsDB " "WHERE user_name =:1 AND bill_id =:2",
@@ -470,7 +513,7 @@ class dataBaseClass:
 
 	def get_shopping_list(self, groupID):
 		try:
-			match = db.GqlQuery("SELECT * " "FROM ShopListDB " "WHERE group_id =:x ",x=groupID)
+			match = db.GqlQuery("SELECT * " "FROM ShopListDB " "WHERE group_id =:x ",x=int(groupID))
 			items=match.fetch(100)
 			itemsList = ""
 			for i in range (0,len(items)):
@@ -488,7 +531,7 @@ class dataBaseClass:
 				return 0, "you are not a member in this group anymore"
 			else:
 				items_to_remove = items.split('#')
-				match2 = db.GqlQuery("SELECT * " "FROM ShopListDB " "WHERE group_id =:x ",x=groupID)
+				match2 = db.GqlQuery("SELECT * " "FROM ShopListDB " "WHERE group_id =:x ",x=int(groupID))
 				group_items=match2.fetch(100)
 				for item in items_to_remove:
 					for i in group_items:
@@ -507,7 +550,7 @@ class dataBaseClass:
 			elif '#' in item:
 				return 0, '# is not allowed'
 			else:
-				ret = ShopListDB(group_id = groupID, product = item).put()
+				ret = ShopListDB(group_id = int(groupID), product = item).put()
 				return 1,"adding succeed"
 
 		except datastore_errors,e:
@@ -550,6 +593,7 @@ class dataBaseClass:
 					elif member.user_groupID == user.user_groupID:
 						member.user_groupID = 0
 						member.put()
+						self.removeQuery(memberName,user.user_groupID)
 						return 2,"member removed"
 					else:
 						return 0,"user is not a member anymore"
@@ -561,8 +605,10 @@ class dataBaseClass:
 			match1 = db.GqlQuery("SELECT * " "FROM UsersDB " "WHERE user_name =:x ",x=userName)
 			user1=match1.get()
 			if user1.is_admin == False:
+				grp = user1.user_groupID
 				user1.user_groupID = 0
 				user1.put()
+				self.removeQuery(userName,grp)
 				return 1, "left group successfuly"
 
 			else:
@@ -570,6 +616,7 @@ class dataBaseClass:
 										x=user1.user_groupID)
 				user2=match2.fetch(100)
 				if len(user2) == 1:
+					grp = user1.user_groupID
 					user1.user_groupID = 0
 					user1.is_admin = False
 					user1.put()
@@ -577,7 +624,7 @@ class dataBaseClass:
 					match2 = db.GqlQuery("SELECT * " "FROM GroupsDB " "WHERE group_admin =:x ",
 											x=userName)
 					match2.get().delete()
-
+					self.removeQuery(memberName,grp)
 					return 1, "left group successfuly"
 				else:
 					return 0, "you must pass your admin permissions first"
@@ -723,17 +770,3 @@ class dataBaseClass:
 			return 0,'adding failed : '+e,''
 
 app = webapp2.WSGIApplication([('/', MainPage)],debug=True)
-
-
-
-'''	def set_group(self, adminName, groupName):
-		return 1
-		
-
-				return 1,groupName+" roomate group was created successfully",''
-			else:
-				return 0,adminName+" already created a group",''
-
-		except datastore_errors,e:
-			return 0,'adding failed : '+e,''
-'''

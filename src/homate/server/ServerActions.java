@@ -8,8 +8,6 @@ import android.util.Log;
 public class ServerActions 
 {
 	/* URL key */
-	//public static final String URL = "http://127.0.0.1:8080";
-	//public static final String URL = "http://192.168.1.14:8080";
 	public static final String URL = "http://local-turbine-778.appspot.com";
 
 	/* Actions defines */
@@ -39,6 +37,7 @@ public class ServerActions
 	public static final String ACTION_SHOW_PERSONAL_BILLS = "get_personal_bills";
 	public static final String ACTION_GET_CLEANING_ORDER = "get_cleaning_order";
 	public static final String ACTION_SET_CLEANING_PREFS = "set_cleaning_prefs";
+	public static final String ACTION_GET_ROUTINE_DAY = "get_routine_day";
 	
 	/* Message Constants */
 	public static final String SERVER_RET_VAL = "return value";
@@ -46,8 +45,6 @@ public class ServerActions
 	public static final String SERVER_DATA = "data";
 	public static final String SERVER_DATA2 = "data2";
 	public static final String SERVER_ACTION = "action";
-
-
 
 
 	/* Variables */
@@ -65,7 +62,6 @@ public class ServerActions
 			this.br_action_name = "default";
 	}
 
-	// new_user_register
 	public void new_user_registery(final String username, final String password) 
 	{
 		JSONObject info = new JSONObject();
@@ -714,8 +710,30 @@ public class ServerActions
 		}
 		
 	}
-	
-	
-	
-	
+
+	public void getRoutineDay(String group) {
+
+		JSONObject info = new JSONObject();
+		/** Add data to JSON object */
+		try
+		{
+			info.put(ACTION_COMMAND, ACTION_GET_ROUTINE_DAY);
+			info.put("groupID", group);
+		}
+		catch (JSONException e) 
+		{
+			Log.e("JSONObject","IOException:" +  e.toString());
+		} 
+		finally 
+		{
+			/** call intentService */
+			Intent msgIntent = new Intent(this.activity, HTTPIntentService.class);
+			msgIntent.putExtra(HTTPIntentService.PARAM_URL, URL);
+			msgIntent.putExtra(HTTPIntentService.PARAM_IN_MSG, info.toString());
+			msgIntent.putExtra(HTTPIntentService.PARAM_BR_ACTION_NAME, br_action_name);
+
+			this.activity.startService(msgIntent); 
+		
+		}	
+	}	
 }
